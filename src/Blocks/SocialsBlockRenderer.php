@@ -53,7 +53,13 @@ final class SocialsBlockRenderer implements BlockRenderer
             return new HtmlString('');
         }
 
-        return new HtmlString(View::make($definition->publicViewName(), compact('renderData'))->render());
+        $view = $definition->publicViewName();
+
+        if (! view()->exists($view)) {
+            throw new InvalidArgumentException("View [{$view}] not found.");
+        }
+
+        return new HtmlString(View::make($view, compact('renderData'))->render());
     }
 
     /** @param array<string, mixed> $state */

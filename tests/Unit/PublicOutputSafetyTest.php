@@ -75,7 +75,7 @@ function renderSocialsPublicView(SocialFollowRenderData $renderData): string
         $finder->addNamespace('capell-socials', dirname(__DIR__, 2) . '/resources/views');
         $factory = new Factory($resolver, $finder, new Dispatcher(Container::getInstance()));
 
-        return $factory->make('blocks.socials', compact('renderData'))->render();
+        return $factory->make('capell-socials::blocks.socials', compact('renderData'))->render();
     } finally {
         $filesystem->deleteDirectory($cachePath);
     }
