@@ -50,6 +50,9 @@ final class SocialsServiceProvider extends AbstractPackageServiceProvider
 
     public function packageRegistered(): void
     {
+        // Block discovery reads labels before package providers finish booting.
+        $this->loadTranslationsFrom(__DIR__ . '/../../resources/lang', self::$name);
+
         $this->app->singleton(SocialNetworkRegistry::class);
         $this->app->singleton(SocialsCacheEpoch::class);
         $this->app->alias(SocialNetworkRegistry::class, SocialNetworkRegistryContract::class);

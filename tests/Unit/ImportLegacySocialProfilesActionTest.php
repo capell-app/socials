@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Capell\Core\Events\FrontendSurrogateKeysInvalidated;
+use Capell\Core\Support\Database\DatabasePlatformRegistry;
+use Capell\Core\Support\Database\Platforms\SqliteDatabasePlatform;
 use Capell\Socials\Actions\ImportLegacySocialProfilesAction;
 use Capell\Socials\Enums\SocialLabelStyle;
 use Capell\Socials\Models\SocialProfile;
@@ -47,6 +49,11 @@ beforeEach(function (): void {
     $container->instance('translator', new Translator($loader, 'en'));
     $container->instance('db', $capsule->getDatabaseManager());
     $container->instance('db.schema', $capsule->schema());
+    // Site scopes resolve Core's database platform even in a standalone app.
+    $container->instance(DatabasePlatformRegistry::class, new DatabasePlatformRegistry(
+        [new SqliteDatabasePlatform],
+        $capsule->getDatabaseManager(),
+    ));
 
     $transactionManager = new DatabaseTransactionsManager;
     $capsule->getConnection()->setTransactionManager($transactionManager);

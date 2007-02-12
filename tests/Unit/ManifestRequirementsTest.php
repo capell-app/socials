@@ -125,7 +125,7 @@ it('declares the shipped Socials package surfaces and Marketplace assets', funct
 
     expect($previewEntry)->toMatchArray([
         'interactions' => [
-            ['type' => 'waitFor', 'selector' => '.capell-socials'],
+            ['type' => 'scrollIntoView', 'selector' => '[data-capell-socials-admin-preview] a[href*="linkedin.com/sharing/"]'],
         ],
     ]);
 
@@ -143,6 +143,7 @@ it('declares the shipped Socials package surfaces and Marketplace assets', funct
             ['type' => 'fill', 'selector' => '.fi-fo-repeater-item:first-child [data-capell-socials-profile-custom-label]', 'value' => 'Follow this site'],
             ['type' => 'waitFor', 'selector' => '[data-capell-socials-admin-preview] a[aria-label="Follow this site"]'],
             ['type' => 'waitFor', 'selector' => '[data-capell-socials-save-status="dirty"]'],
+            ['type' => 'scrollIntoView', 'selector' => '[data-capell-socials-admin-preview] a[aria-label="Follow this site"]'],
         ],
     ])->and($saveErrorEntry)->toMatchArray([
         'colorSchemes' => ['light', 'dark'],

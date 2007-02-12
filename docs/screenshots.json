@@ -4,6 +4,7 @@
     "generatedFor": "deployment-screenshot-runner",
     "requiresInstalledPackage": true,
     "composerRequires": ["capell-app/socials", "capell-app/block-library"],
+    "fixtureCommands": ["capell:socials-screenshot-fixture"],
     "outputDirectory": "packages/socials/docs/screenshots",
     "entries": [
         {
@@ -34,13 +35,13 @@
             "waitFor": "form",
             "colorSchemes": ["light"],
             "required": true,
-            "notes": "Capture the follow and share appearance controls sitting beside the live unsaved follow/share preview on the same surface, including the dirty and validation/save-error states.",
+            "notes": "Scroll to the sharing preview so the appearance controls and rendered links are visible, rather than repeating the profile editor at the top of the page. The unsaved-preview and save-error entries exercise those separate states.",
             "useCase": "An editor checks link treatment and sharing before saving, without leaving the setup page.",
             "screenshotPath": "packages/socials/docs/screenshots/socials-defaults-and-preview.png",
             "interactions": [
                 {
-                    "type": "waitFor",
-                    "selector": ".capell-socials"
+                    "type": "scrollIntoView",
+                    "selector": "[data-capell-socials-admin-preview] a[href*=\"linkedin.com/sharing/\"]"
                 }
             ]
         },
@@ -96,6 +97,10 @@
                 {
                     "type": "waitFor",
                     "selector": "[data-capell-socials-save-status=\"dirty\"]"
+                },
+                {
+                    "type": "scrollIntoView",
+                    "selector": "[data-capell-socials-admin-preview] a[aria-label=\"Follow this site\"]"
                 }
             ]
         },

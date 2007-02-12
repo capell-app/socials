@@ -8,6 +8,7 @@ use Capell\Socials\Actions\SeedSocialsScreenshotFixtureAction;
 use Capell\Socials\Enums\SocialLabelStyle;
 use Capell\Socials\Models\SocialProfile;
 use Capell\Socials\Models\SocialSitePreferences;
+use Capell\Tests\Support\ScreenshotManifest;
 
 function migrateSocialsScreenshotFixtureTables(): void
 {
@@ -69,9 +70,11 @@ it('seeds enabled profiles and defaults for the disposable Socials preview', fun
 
 it('registers the guarded fixture command for the disposable screenshot app', function (): void {
     withSocialsScreenshotFixtureEnvironment(function (): void {
-        capell_artisan('capell:socials-screenshot-fixture', ['--force' => true])
-            ->expectsOutput('Socials screenshot fixture initialized.')
-            ->assertSuccessful();
+        foreach (ScreenshotManifest::fixtureCommands(dirname(__DIR__, 2) . '/docs/screenshots.json') as $command) {
+            capell_artisan($command, ['--force' => true])
+                ->expectsOutput('Socials screenshot fixture initialized.')
+                ->assertSuccessful();
+        }
 
         expect(SocialProfile::query()->where('site_id', $this->site->getKey())->count())->toBe(3);
     });
