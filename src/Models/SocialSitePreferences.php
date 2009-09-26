@@ -6,6 +6,7 @@ namespace Capell\Socials\Models;
 
 use Capell\Core\Models\Site;
 use Capell\Socials\Enums\SocialLabelStyle;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -55,6 +56,21 @@ final class SocialSitePreferences extends Model
         return $this->belongsTo(Site::class);
     }
 
+    /**
+     * The `share_network_keys` column is nullable (MySQL 8 rejects a JSON
+     * column default), so a plain `array` cast would surface an existing
+     * NULL row as `null` instead of an empty list. Normalise on read.
+     *
+     * @return Attribute<list<string>, list<string>>
+     */
+    protected function shareNetworkKeys(): Attribute
+    {
+        return Attribute::make(
+            get: fn (mixed $value) => is_string($value) ? json_decode($value, true) : [],
+            set: fn (mixed $value) => json_encode($value),
+        );
+    }
+
     /** @return array<string, string> */
     #[Override]
     protected function casts(): array
@@ -62,7 +78,6 @@ final class SocialSitePreferences extends Model
         return [
             'follow_label_style' => SocialLabelStyle::class,
             'follow_open_in_new_tab' => 'boolean',
-            'share_network_keys' => 'array',
             'share_networks_customised' => 'boolean',
             'share_label_style' => SocialLabelStyle::class,
             'share_open_in_new_tab' => 'boolean',

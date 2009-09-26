@@ -43,6 +43,17 @@
             "modelClass": "Capell\\Socials\\Models\\SocialSitePreferences"
         },
         {
+            "type": "migration",
+            "class": "Capell\\Socials\\Manifest\\SocialsMigrationsContribution",
+            "tables": ["social_profiles", "social_site_preferences"],
+            "migrationFiles": [
+                "2026_07_16_000001_create_social_profiles_table",
+                "2026_07_16_000002_create_social_site_preferences_table",
+                "2026_08_31_000001_add_share_networks_customised_to_social_site_preferences",
+                "2026_09_07_000002_make_share_network_keys_nullable"
+            ]
+        },
+        {
             "type": "admin-page",
             "class": "Capell\\Socials\\Manifest\\SocialsAdminPageContribution",
             "pageClass": "Capell\\Socials\\Filament\\Pages\\SocialsPage",

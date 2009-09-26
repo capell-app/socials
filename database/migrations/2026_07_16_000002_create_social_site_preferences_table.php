@@ -20,7 +20,7 @@ return new class extends Migration
                 $table->foreignId('site_id')->unique()->constrained('sites')->cascadeOnDelete();
                 $table->string('follow_label_style')->default('icons');
                 $table->boolean('follow_open_in_new_tab')->default(false);
-                $table->json('share_network_keys')->default('[]');
+                $table->json('share_network_keys')->nullable();
                 $table->string('share_label_style')->default('icons');
                 $table->boolean('share_open_in_new_tab')->default(false);
                 $table->timestamps();
