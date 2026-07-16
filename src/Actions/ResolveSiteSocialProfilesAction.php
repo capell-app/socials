@@ -11,11 +11,13 @@ use Capell\Socials\Data\SocialProfileConfigurationData;
 use Capell\Socials\Data\SocialProfileData;
 use Capell\Socials\Data\SocialProfilesData;
 use Capell\Socials\Models\SocialProfile;
+use Capell\Socials\Models\SocialSitePreferences;
 use Capell\Socials\Support\HttpUrlValidator;
 use Capell\Socials\Support\SocialSiteId;
 use InvalidArgumentException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/** @method static SocialProfilesData run(Site $site, string $locale, ?list<int> $profileIds = null) */
 final class ResolveSiteSocialProfilesAction implements SocialProfilesResolver
 {
     use AsAction;
@@ -25,9 +27,18 @@ final class ResolveSiteSocialProfilesAction implements SocialProfilesResolver
         private readonly HttpUrlValidator $httpUrlValidator,
     ) {}
 
-    public function resolve(Site $site, string $locale): SocialProfilesData
+    /** @param list<int>|null $profileIds */
+    public function resolve(Site $site, string $locale, ?array $profileIds = null): SocialProfilesData
     {
-        return $this->handle($site, $locale);
+        return $this->handle($site, $locale, $profileIds);
+    }
+
+    public function hasConfiguration(Site $site): bool
+    {
+        $siteId = SocialSiteId::from($site);
+
+        return SocialProfile::query()->where('site_id', $siteId)->exists()
+            || SocialSitePreferences::query()->where('site_id', $siteId)->exists();
     }
 
     /** @param list<int>|null $profileIds */

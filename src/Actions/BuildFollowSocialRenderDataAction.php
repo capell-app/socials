@@ -14,16 +14,16 @@ use Capell\Socials\Models\SocialSitePreferences;
 use Capell\Socials\Support\SocialsCacheEpoch;
 use Capell\Socials\Support\SocialSiteId;
 use Illuminate\Support\Facades\Cache;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
+/** @method static SocialFollowRenderData run(Site $site, string $locale, SocialFollowWidgetConfigData $config) */
 final class BuildFollowSocialRenderDataAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
-    public function __construct(
-        private readonly ResolveSiteSocialProfilesAction $profilesResolver,
-        private readonly SocialsCacheEpoch $cacheEpoch,
-    ) {}
+    public function __construct(private readonly SocialsCacheEpoch $cacheEpoch) {}
 
     public function handle(Site $site, string $locale, SocialFollowWidgetConfigData $config): SocialFollowRenderData
     {
@@ -39,7 +39,7 @@ final class BuildFollowSocialRenderDataAction
         return Cache::rememberForever($cacheKey, function () use ($site, $locale, $config): SocialFollowRenderData {
             $preferences = SocialSitePreferences::query()->firstWhere('site_id', $site->getKey())
                 ?? new SocialSitePreferences;
-            $profiles = $this->profilesResolver->handle($site, $locale, $config->profileIds)->profiles;
+            $profiles = ResolveSiteSocialProfilesAction::run($site, $locale, $config->profileIds)->profiles;
 
             foreach ($config->customLinks as $customLink) {
                 $profiles[] = new SocialProfileData(
@@ -77,7 +77,7 @@ final class BuildFollowSocialRenderDataAction
                 continue;
             }
 
-            $renderedProfile = $this->profilesResolver->resolveConfiguration($profile);
+            $renderedProfile = ResolveSiteSocialProfilesAction::make()->resolveConfiguration($profile);
 
             if ($renderedProfile !== null) {
                 $renderedProfiles[] = $renderedProfile;

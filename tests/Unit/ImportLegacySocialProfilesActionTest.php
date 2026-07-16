@@ -1,0 +1,125 @@
+<?php
+
+declare(strict_types=1);
+
+use Capell\Core\Events\FrontendSurrogateKeysInvalidated;
+use Capell\Socials\Actions\ImportLegacySocialProfilesAction;
+use Capell\Socials\Models\SocialProfile;
+use Capell\Socials\Support\BuiltIns\BuiltInSocialNetworkDefinitions;
+use Capell\Socials\Support\HttpUrlValidator;
+use Capell\Socials\Support\SocialNetworkRegistry;
+use Capell\Socials\Support\SocialsCacheEpoch;
+use Illuminate\Cache\ArrayStore;
+use Illuminate\Cache\Repository;
+use Illuminate\Container\Container;
+use Illuminate\Database\Capsule\Manager as Capsule;
+use Illuminate\Database\DatabaseTransactionsManager;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Events\Dispatcher;
+use Illuminate\Support\Facades\Facade;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Translation\ArrayLoader;
+use Illuminate\Translation\Translator;
+
+beforeEach(function (): void {
+    $this->previousContainer = Container::getInstance();
+    $this->previousFacadeApplication = Facade::getFacadeApplication();
+    $this->invalidatedSurrogateKeys = [];
+
+    $capsule = new Capsule;
+    $capsule->addConnection([
+        'driver' => 'sqlite',
+        'database' => ':memory:',
+        'prefix' => '',
+    ]);
+    $capsule->setAsGlobal();
+    $capsule->bootEloquent();
+
+    $container = new Container;
+    $loader = new ArrayLoader;
+    $loader->addMessages('en', 'capell-socials::socials', require dirname(__DIR__, 2) . '/resources/lang/en/socials.php');
+    $container->instance('translator', new Translator($loader, 'en'));
+    $container->instance('db', $capsule->getDatabaseManager());
+    $container->instance('db.schema', $capsule->schema());
+
+    $transactionManager = new DatabaseTransactionsManager;
+    $capsule->getConnection()->setTransactionManager($transactionManager);
+    $container->instance('db.transactions', $transactionManager);
+
+    $events = new Dispatcher($container);
+    $events->listen(FrontendSurrogateKeysInvalidated::class, function (FrontendSurrogateKeysInvalidated $event): void {
+        $this->invalidatedSurrogateKeys[] = $event->surrogateKeys;
+    });
+    $container->instance('events', $events);
+
+    Container::setInstance($container);
+    Facade::setFacadeApplication($container);
+    Facade::clearResolvedInstances();
+
+    Schema::create('sites', function (Blueprint $table): void {
+        $table->id();
+        $table->json('meta')->nullable();
+        $table->softDeletes();
+    });
+
+    $createProfiles = require dirname(__DIR__, 2) . '/database/migrations/2026_07_16_000001_create_social_profiles_table.php';
+    $createProfiles->up();
+
+    $this->cacheEpoch = new SocialsCacheEpoch(new Repository(new ArrayStore));
+    $this->action = new ImportLegacySocialProfilesAction(
+        importLegacySocialsRegistry(),
+        new HttpUrlValidator,
+        $this->cacheEpoch,
+    );
+});
+
+afterEach(function (): void {
+    Facade::clearResolvedInstances();
+    Facade::setFacadeApplication($this->previousFacadeApplication);
+    Container::setInstance($this->previousContainer);
+});
+
+it('imports supported and labelled custom legacy profiles once without overwriting them on a later run', function (): void {
+    $legacyMeta = [
+        'social_links' => [
+            ['type' => 'twitter', 'url' => '@capell', 'name' => 'Follow Capell'],
+            ['type' => 'custom', 'url' => 'https://example.com/community', 'name' => 'Community'],
+        ],
+        'twitter' => '@ignored-fallback',
+    ];
+
+    Schema::getConnection()->table('sites')->insert(['id' => 1, 'meta' => json_encode($legacyMeta, JSON_THROW_ON_ERROR)]);
+
+    $firstImport = $this->action->handle();
+    $profiles = SocialProfile::query()->where('site_id', 1)->orderBy('sort_order')->get();
+
+    expect($firstImport->profilesImported)->toBe(2)
+        ->and($profiles)->toHaveCount(2)
+        ->and($profiles[0]->network_key)->toBe('x')
+        ->and($profiles[0]->profile_value)->toBe('https://x.com/capell')
+        ->and($profiles[0]->custom_label)->toBe('Follow Capell')
+        ->and($profiles[1]->network_key)->toBeNull()
+        ->and($profiles[1]->profile_value)->toBe('https://example.com/community')
+        ->and($profiles[1]->custom_label)->toBe('Community')
+        ->and($this->cacheEpoch->current(1))->toBe(2)
+        ->and($this->invalidatedSurrogateKeys)->toBe([['site-1']]);
+
+    $secondImport = $this->action->handle();
+
+    expect($secondImport->profilesImported)->toBe(0)
+        ->and($secondImport->skipped)->toBe(['Site 1 already has Socials profiles.'])
+        ->and(SocialProfile::query()->where('site_id', 1)->count())->toBe(2)
+        ->and($this->cacheEpoch->current(1))->toBe(2)
+        ->and($this->invalidatedSurrogateKeys)->toBe([['site-1']]);
+});
+
+function importLegacySocialsRegistry(): SocialNetworkRegistry
+{
+    $registry = new SocialNetworkRegistry;
+
+    foreach (BuiltInSocialNetworkDefinitions::all() as $definition) {
+        $registry->register($definition);
+    }
+
+    return $registry;
+}

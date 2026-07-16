@@ -26,8 +26,6 @@ final class SocialsBlockRenderer implements BlockRenderer
 {
     public function __construct(
         private readonly SocialNetworkRegistry $networkRegistry,
-        private readonly BuildFollowSocialRenderDataAction $buildFollowRenderData,
-        private readonly BuildShareSocialRenderDataAction $buildShareRenderData,
     ) {}
 
     /** @param array<string, mixed> $state */
@@ -46,7 +44,7 @@ final class SocialsBlockRenderer implements BlockRenderer
         try {
             $renderData = $mode === 'share'
                 ? $this->shareRenderData($site, $language->code, $state)
-                : $this->buildFollowRenderData->handle($site, $language->code, SocialFollowWidgetConfigData::fromState($state));
+                : BuildFollowSocialRenderDataAction::run($site, $language->code, SocialFollowWidgetConfigData::fromState($state));
         } catch (InvalidArgumentException|ValueError) {
             return new HtmlString('');
         }
@@ -75,7 +73,7 @@ final class SocialsBlockRenderer implements BlockRenderer
             throw new InvalidArgumentException('Share widgets require a canonical page URL and title.');
         }
 
-        return $this->buildShareRenderData->handle(
+        return BuildShareSocialRenderDataAction::run(
             $site,
             new SharePageContextData($canonicalUrl, $title, $locale),
             SocialShareWidgetConfigData::fromState($state, $this->networkRegistry),

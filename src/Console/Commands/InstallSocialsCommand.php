@@ -18,17 +18,24 @@ final class InstallSocialsCommand extends Command
 
     protected $description = 'Install Socials tables and import legacy social profiles.';
 
-    public function handle(ImportLegacySocialProfilesAction $importLegacySocialProfiles): int
+    public function handle(): int
     {
+        $site = $this->option('site');
+
+        if ($site !== null && (! is_string($site) || ! ctype_digit($site) || (int) $site < 1)) {
+            $this->error('The --site option must be a positive integer site ID.');
+
+            return self::INVALID;
+        }
+
         $reporter = new ConsoleProgressReporter($this);
         $package = CapellCore::getPackage('capell-app/socials');
 
         PublishPackageMigrationsAction::run(new Collection([$package->name => $package]), $reporter, true, false);
         RunMigrationsAction::run($reporter);
 
-        $site = $this->option('site');
-        $siteId = is_numeric($site) ? (int) $site : null;
-        $result = $importLegacySocialProfiles->handle($siteId, (bool) $this->option('dry-run'));
+        $siteId = is_string($site) ? (int) $site : null;
+        $result = ImportLegacySocialProfilesAction::run($siteId, (bool) $this->option('dry-run'));
 
         $this->info(sprintf('%d social profiles imported across %d site(s).', $result->profilesImported, $result->sitesConsidered));
 

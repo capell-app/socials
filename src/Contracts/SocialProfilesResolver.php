@@ -9,5 +9,8 @@ use Capell\Socials\Data\SocialProfilesData;
 
 interface SocialProfilesResolver
 {
-    public function resolve(Site $site, string $locale): SocialProfilesData;
+    /** @param list<int>|null $profileIds */
+    public function resolve(Site $site, string $locale, ?array $profileIds = null): SocialProfilesData;
+
+    public function hasConfiguration(Site $site): bool;
 }

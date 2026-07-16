@@ -7,12 +7,14 @@ use Capell\Socials\Actions\ResolveSiteSocialProfilesAction;
 use Capell\Socials\Contracts\SocialProfilesResolver;
 use Capell\Socials\Data\SocialProfileConfigurationData;
 use Capell\Socials\Models\SocialProfile;
+use Capell\Socials\Models\SocialSitePreferences;
 use Capell\Socials\Support\BuiltIns\BuiltInSocialNetworkDefinitions;
 use Capell\Socials\Support\HttpUrlValidator;
 use Capell\Socials\Support\SocialNetworkRegistry;
 use Illuminate\Container\Container;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Translation\ArrayLoader;
@@ -31,7 +33,7 @@ beforeEach(function (): void {
     $capsule->setAsGlobal();
     $capsule->bootEloquent();
 
-    $container = new Container;
+    $container = new Application;
     $loader = new ArrayLoader;
     $loader->addMessages('en', 'capell-socials::socials', require dirname(__DIR__, 2) . '/resources/lang/en/socials.php');
     $container->instance('translator', new Translator($loader, 'en'));
@@ -46,7 +48,9 @@ beforeEach(function (): void {
     });
 
     $createProfiles = require dirname(__DIR__, 2) . '/database/migrations/2026_07_16_000001_create_social_profiles_table.php';
+    $createPreferences = require dirname(__DIR__, 2) . '/database/migrations/2026_07_16_000002_create_social_site_preferences_table.php';
     $createProfiles->up();
+    $createPreferences->up();
 });
 
 afterEach(function (): void {
@@ -142,6 +146,17 @@ it('omits invalid registered and incomplete custom profiles without breaking the
     ]);
 
     expect($action->handle(socialResolverSite(2), 'en')->profiles)->toBe([]);
+});
+
+it('distinguishes an untouched site from an intentionally empty package configuration', function (): void {
+    $action = new ResolveSiteSocialProfilesAction(socialResolverRegistry(), new HttpUrlValidator);
+    $site = socialResolverSite(3);
+
+    expect($action->hasConfiguration($site))->toBeFalse();
+
+    SocialSitePreferences::query()->create(['site_id' => 3]);
+
+    expect($action->hasConfiguration($site))->toBeTrue();
 });
 
 it('builds public-safe preview data from unsaved configuration through the same resolver', function (): void {

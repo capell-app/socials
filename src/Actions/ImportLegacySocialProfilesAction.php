@@ -14,10 +14,13 @@ use Capell\Socials\Support\SocialsCacheEpoch;
 use Capell\Socials\Support\SocialSiteId;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
+/** @method static LegacySocialImportResultData run(?int $siteId = null, bool $dryRun = false) */
 final class ImportLegacySocialProfilesAction
 {
+    use AsFake;
     use AsObject;
 
     public function __construct(

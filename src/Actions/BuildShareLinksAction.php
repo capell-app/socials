@@ -11,6 +11,7 @@ use Capell\Socials\Data\SharePageContextData;
 use Capell\Socials\Enums\SocialNetworkCapability;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/** @method static ShareLinksData run(SharePageContextData $context, list<string> $networkKeys, SocialNetworkRegistry $registry) */
 final class BuildShareLinksAction
 {
     use AsAction;

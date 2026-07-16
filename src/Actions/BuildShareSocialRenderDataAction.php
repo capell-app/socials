@@ -14,11 +14,14 @@ use Capell\Socials\Models\SocialSitePreferences;
 use Capell\Socials\Support\SocialsCacheEpoch;
 use Capell\Socials\Support\SocialSiteId;
 use Illuminate\Support\Facades\Cache;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
+/** @method static SocialShareRenderData run(Site $site, SharePageContextData $context, SocialShareWidgetConfigData $config) */
 final class BuildShareSocialRenderDataAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function __construct(
         private readonly SocialNetworkRegistry $networkRegistry,
@@ -42,7 +45,7 @@ final class BuildShareSocialRenderDataAction
             $preferences = SocialSitePreferences::query()->firstWhere('site_id', $site->getKey())
                 ?? new SocialSitePreferences;
             $networkKeys = $config->networkKeys ?? $preferences->share_network_keys;
-            $links = (new BuildShareLinksAction)->handle($context, $networkKeys, $this->networkRegistry)->links;
+            $links = BuildShareLinksAction::run($context, $networkKeys, $this->networkRegistry)->links;
 
             return new SocialShareRenderData(
                 heading: $config->heading,
@@ -60,7 +63,7 @@ final class BuildShareSocialRenderDataAction
         SocialSitePreferencesData $preferences,
     ): SocialShareRenderData {
         $networkKeys = $config->networkKeys ?? $preferences->shareNetworkKeys;
-        $links = (new BuildShareLinksAction)->handle($context, $networkKeys, $this->networkRegistry)->links;
+        $links = BuildShareLinksAction::run($context, $networkKeys, $this->networkRegistry)->links;
 
         return new SocialShareRenderData(
             heading: $config->heading,

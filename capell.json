@@ -72,6 +72,8 @@
     },
     "permissions": ["Manage:Socials"],
     "capabilities": [
+        "frontend-rendering",
+        "cache-invalidation",
         "socials",
         "socials-profiles",
         "socials-sharing",
@@ -115,10 +117,10 @@
     "performance": {
         "frontendRenderBudgetMs": 10,
         "adminQueryBudget": 20,
-        "cacheTags": [],
+        "cacheTags": ["socials"],
         "cacheSafety": {
-            "cacheable": true,
-            "variesBy": ["site", "locale", "widget"],
+            "cacheable": false,
+            "variesBy": [],
             "sensitiveOutput": false,
             "invalidationSources": [
                 {
