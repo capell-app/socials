@@ -28,7 +28,7 @@
         "metadata": [],
         "install": [],
         "runtime": ["Capell\\Socials\\Providers\\SocialsServiceProvider"],
-        "admin": [],
+        "admin": ["Capell\\Socials\\Providers\\AdminServiceProvider"],
         "frontend": []
     },
     "contributes": [
@@ -41,6 +41,14 @@
             "type": "model",
             "class": "Capell\\Socials\\Manifest\\SocialSitePreferencesModelContribution",
             "modelClass": "Capell\\Socials\\Models\\SocialSitePreferences"
+        },
+        {
+            "type": "admin-page",
+            "class": "Capell\\Socials\\Manifest\\SocialsAdminPageContribution",
+            "pageClass": "Capell\\Socials\\Filament\\Pages\\SocialsPage",
+            "label": "Socials",
+            "permission": "Manage:Socials",
+            "managementRoute": "capell.admin.socials"
         },
         {
             "type": "frontend-component",
