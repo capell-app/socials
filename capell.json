@@ -1,0 +1,155 @@
+{
+    "manifest-version": 3,
+    "name": "capell-app/socials",
+    "slug": "socials",
+    "displayName": "Socials",
+    "kind": "package",
+    "capellApiVersion": "^1.0",
+    "version": "1.x-dev",
+    "description": "First-party social profiles, sharing preferences, and safe follow and share widgets for Capell.",
+    "product": {
+        "tier": "free",
+        "bundle": "foundation",
+        "group": "Capell Foundation"
+    },
+    "namespace": "Capell\\Socials",
+    "surfaces": ["admin", "frontend", "console", "shared"],
+    "dependencies": {
+        "requires": [
+            "capell-app/core",
+            "capell-app/admin",
+            "capell-app/frontend",
+            "capell-app/block-library"
+        ],
+        "supports": ["capell-app/seo-suite"],
+        "conflicts": []
+    },
+    "providers": {
+        "metadata": [],
+        "install": [],
+        "runtime": ["Capell\\Socials\\Providers\\SocialsServiceProvider"],
+        "admin": [],
+        "frontend": []
+    },
+    "contributes": [
+        {
+            "type": "model",
+            "class": "Capell\\Socials\\Manifest\\SocialProfileModelContribution",
+            "modelClass": "Capell\\Socials\\Models\\SocialProfile"
+        },
+        {
+            "type": "model",
+            "class": "Capell\\Socials\\Manifest\\SocialSitePreferencesModelContribution",
+            "modelClass": "Capell\\Socials\\Models\\SocialSitePreferences"
+        },
+        {
+            "type": "frontend-component",
+            "class": "Capell\\Socials\\Manifest\\SocialsWidgetContribution",
+            "blockKey": "socials",
+            "definitionProviderClass": "Capell\\Socials\\Blocks\\SocialsBlockDefinitionProvider",
+            "rendererClass": "Capell\\Socials\\Blocks\\SocialsBlockRenderer",
+            "surface": "frontend"
+        }
+    ],
+    "database": {
+        "migrations": true,
+        "settings": false,
+        "requiredTables": ["social_profiles", "social_site_preferences"]
+    },
+    "commands": {
+        "install": "capell:socials-install",
+        "setup": null,
+        "demo": null,
+        "doctor": null
+    },
+    "permissions": ["Manage:Socials"],
+    "capabilities": [
+        "socials",
+        "socials-profiles",
+        "socials-sharing",
+        "socials-registry",
+        "socials-widget",
+        "socials-cache-epoch"
+    ],
+    "security": {
+        "riskTier": "low",
+        "publicSurface": {
+            "routeNames": [],
+            "auth": "none",
+            "csrfExemptRoutes": [],
+            "signedRoutes": [],
+            "tokenizedRoutes": [],
+            "webhookRoutes": [],
+            "throttledRoutes": []
+        },
+        "sensitiveData": {
+            "encryptedFields": [],
+            "hashedTokenFields": [],
+            "redactedOutputClasses": [],
+            "plaintextJustifications": []
+        },
+        "publicOutput": {
+            "cacheSafe": true,
+            "forbidAuthoringSurface": true,
+            "forbidSecrets": true,
+            "forbidPublicBladeQueries": true
+        },
+        "externalHttpClients": {
+            "requiresTimeouts": false,
+            "requiresSecretRedaction": false,
+            "clients": []
+        },
+        "adminSurface": {
+            "authorization": "permissions",
+            "permissions": ["Manage:Socials"]
+        }
+    },
+    "performance": {
+        "frontendRenderBudgetMs": 10,
+        "adminQueryBudget": 20,
+        "cacheTags": [],
+        "cacheSafety": {
+            "cacheable": true,
+            "variesBy": ["site", "locale", "widget"],
+            "sensitiveOutput": false,
+            "invalidationSources": [
+                {
+                    "model": "Capell\\Socials\\Models\\SocialProfile",
+                    "events": ["created", "updated", "deleted"]
+                },
+                {
+                    "model": "Capell\\Socials\\Models\\SocialSitePreferences",
+                    "events": ["created", "updated", "deleted"]
+                }
+            ],
+            "queueInvalidation": true
+        }
+    },
+    "healthChecks": [
+        {
+            "key": "socials.storage-and-widget",
+            "label": "Socials storage tables and frontend widget renderer are available",
+            "class": "Capell\\Socials\\Health\\SocialsHealthCheck",
+            "severity": "warning",
+            "surface": "frontend"
+        }
+    ],
+    "commercial": {
+        "proposedLicense": "free",
+        "requestedCertification": "first-party",
+        "supportPolicy": "community",
+        "privateDocsRequested": false
+    },
+    "marketplace": {
+        "summary": "Manage trusted social profiles once per site and place accessible follow or share links wherever a layout needs them.",
+        "screenshots": [
+            {
+                "path": "docs/assets/marketplace/extension-card.svg",
+                "alt": "Socials extension marketplace card.",
+                "caption": "Social profile and sharing controls for Capell."
+            }
+        ],
+        "categories": ["admin", "frontend", "foundation"]
+    },
+    "contributionTraceability": { "deferredContributions": [] }
+}

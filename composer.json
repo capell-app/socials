@@ -1,0 +1,43 @@
+{
+    "name": "capell-app/socials",
+    "description": "First-party social profile and sharing primitives for Capell.",
+    "type": "library",
+    "license": "proprietary",
+    "autoload": {
+        "psr-4": {
+            "Capell\\Socials\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Capell\\Socials\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Capell\\Socials\\Providers\\SocialsServiceProvider"
+            ]
+        },
+        "branch-alias": {
+            "dev-main": "1.x-dev"
+        }
+    },
+    "require": {
+        "php": "^8.4",
+        "capell-app/admin": "^1.0",
+        "capell-app/block-library": "^1.0",
+        "capell-app/core": "^1.0",
+        "capell-app/frontend": "^1.0",
+        "laravel/framework": "^11.45.3|^12.41.1|^13.0",
+        "lorisleiva/laravel-actions": "^2.8",
+        "spatie/laravel-package-tools": "^1.14.1"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.15|^10.8|^11.0",
+        "pestphp/pest": "^3.8|^4.3",
+        "pestphp/pest-plugin-laravel": "^3.0|^4.0"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
