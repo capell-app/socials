@@ -2,6 +2,7 @@
 
 Socials is Capell’s free Foundation extension for per-site social profiles and safe follow/share widgets.
 
+- Status: Available
 - Composer package: `capell-app/socials`
 - Install command: `php artisan capell:socials-install`
 - Widget: `socials` (follow or share mode)
