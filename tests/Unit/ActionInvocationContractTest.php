@@ -27,3 +27,20 @@ it('uses container-backed Laravel Action entrypoints across Socials orchestratio
         ->and($command)->toBeString()
         ->toContain('ImportLegacySocialProfilesAction::run(');
 });
+
+it('passes typed preview render data into Filament views instead of assuming a Livewire view variable', function (): void {
+    $packagePath = dirname(__DIR__, 2);
+    $page = file_get_contents($packagePath . '/src/Filament/Pages/SocialsPage.php');
+    $followPreview = file_get_contents($packagePath . '/resources/views/filament/partials/follow-preview.blade.php');
+    $sharePreview = file_get_contents($packagePath . '/resources/views/filament/partials/share-preview.blade.php');
+
+    expect($page)->toBeString()
+        ->toContain("->viewData(fn (): array => ['renderData' => \$this->getFollowPreviewProperty()])")
+        ->toContain("->viewData(fn (): array => ['renderData' => \$this->getSharePreviewProperty()])")
+        ->and($followPreview)->toBeString()
+        ->toContain('@if ($renderData->shouldRender())')
+        ->not->toContain('$livewire')
+        ->and($sharePreview)->toBeString()
+        ->toContain('@if ($renderData?->shouldRender())')
+        ->not->toContain('$livewire');
+});

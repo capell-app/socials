@@ -75,6 +75,41 @@ it('declares the shipped Socials package surfaces and Marketplace assets', funct
             ->and($screenshot['caption'] ?? null)->toBeString()->not->toBe('')
             ->and(is_file($packagePath . '/' . $screenshot['path']))->toBeTrue();
     }
+
+    $screenshotContract = socialsJsonObject($packagePath . '/docs/screenshots.json');
+    $contractEntries = $screenshotContract['entries'] ?? null;
+
+    if (! is_array($contractEntries)) {
+        throw new RuntimeException('Socials screenshot contract entries must be an array.');
+    }
+
+    $requiredScreenshotPaths = collect($contractEntries)
+        ->filter(static fn (mixed $entry): bool => is_array($entry) && ($entry['required'] ?? false) === true)
+        ->map(static fn (array $entry): string => str_replace('packages/socials/', '', (string) ($entry['screenshotPath'] ?? '')))
+        ->all();
+
+    expect($requiredScreenshotPaths)->toBe([
+        'docs/screenshots/socials-site-profile-management.png',
+        'docs/screenshots/socials-defaults-and-preview.png',
+        'docs/screenshots/socials-follow-widget.png',
+        'docs/screenshots/socials-share-widget.png',
+        'docs/screenshots/socials-registry-extension.png',
+    ])->and(array_column($screenshots, 'path'))->toBe([
+        'docs/assets/marketplace/extension-card.svg',
+        ...$requiredScreenshotPaths,
+    ]);
+
+    foreach ($requiredScreenshotPaths as $path) {
+        expect(is_file($packagePath . '/' . $path))->toBeTrue();
+    }
+
+    $fixtureRoutes = file_get_contents(dirname($packagePath, 2) . '/workbench/routes/screenshot-fixtures.php');
+
+    expect(is_file($packagePath . '/.github/workflows/forward-pr-to-monorepo.yml'))->toBeTrue()
+        ->and($fixtureRoutes)->toBeString()
+        ->toContain('/screenshot-fixtures/socials/follow')
+        ->toContain('/screenshot-fixtures/socials/share')
+        ->toContain('/screenshot-fixtures/socials/registry');
 });
 
 /** @return array<string, mixed> */

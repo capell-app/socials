@@ -157,6 +157,31 @@
                 "path": "docs/assets/marketplace/extension-card.svg",
                 "alt": "Socials extension marketplace card.",
                 "caption": "Social profile and sharing controls for Capell."
+            },
+            {
+                "path": "docs/screenshots/socials-site-profile-management.png",
+                "alt": "The site-scoped Socials profile editor in Capell Admin.",
+                "caption": "Manage ordered registered and custom profiles for each site."
+            },
+            {
+                "path": "docs/screenshots/socials-defaults-and-preview.png",
+                "alt": "Socials follow and share defaults with their live preview.",
+                "caption": "Check unsaved follow and share treatment before publishing it."
+            },
+            {
+                "path": "docs/screenshots/socials-follow-widget.png",
+                "alt": "A public Socials follow widget with accessible profile links.",
+                "caption": "Render trusted follow links without a social SDK."
+            },
+            {
+                "path": "docs/screenshots/socials-share-widget.png",
+                "alt": "A public Socials share widget with canonical page links.",
+                "caption": "Share the canonical page URL with tracker-free network links."
+            },
+            {
+                "path": "docs/screenshots/socials-registry-extension.png",
+                "alt": "A Socials registry extension example for a custom network.",
+                "caption": "Extend supported networks through the package registry."
             }
         ],
         "categories": ["admin", "frontend", "foundation"]

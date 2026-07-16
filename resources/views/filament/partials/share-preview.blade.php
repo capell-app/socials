@@ -1,8 +1,3 @@
-@php
-    /** @var \Capell\Socials\Filament\Pages\SocialsPage $livewire */
-    $renderData = $livewire->sharePreview;
-@endphp
-
 @if ($renderData?->shouldRender())
     @include ('capell-socials::blocks.socials', compact('renderData'))
 @else

@@ -123,6 +123,7 @@ final class SocialsPage extends Page implements HasForms
                                     ->label(__('capell-socials::socials.admin.profiles'))
                                     ->defaultItems(0)
                                     ->orderable()
+                                    ->live()
                                     ->schema([
                                         Select::make('network_key')
                                             ->label(__('capell-socials::socials.admin.network'))
@@ -132,13 +133,16 @@ final class SocialsPage extends Page implements HasForms
                                         TextInput::make('profile_value')
                                             ->label(__('capell-socials::socials.admin.profile_value'))
                                             ->required()
+                                            ->live()
                                             ->maxLength(2048),
                                         TextInput::make('custom_label')
                                             ->label(__('capell-socials::socials.admin.public_label'))
                                             ->required(fn (Get $get): bool => $get('network_key') === '__custom')
+                                            ->live()
                                             ->maxLength(120),
                                         Toggle::make('is_enabled')
                                             ->label(__('capell-socials::socials.admin.enabled'))
+                                            ->live()
                                             ->default(true),
                                     ])
                                     ->columns(2),
@@ -150,9 +154,11 @@ final class SocialsPage extends Page implements HasForms
                                         Select::make('follow_label_style')
                                             ->label(__('capell-socials::socials.admin.label_style'))
                                             ->options($this->labelStyleOptions())
+                                            ->live()
                                             ->required(),
                                         Toggle::make('follow_open_in_new_tab')
-                                            ->label(__('capell-socials::socials.admin.open_in_new_tab')),
+                                            ->label(__('capell-socials::socials.admin.open_in_new_tab'))
+                                            ->live(),
                                     ])
                                     ->columns(2),
                                 Section::make(__('capell-socials::socials.admin.share_defaults'))
@@ -160,13 +166,16 @@ final class SocialsPage extends Page implements HasForms
                                         Select::make('share_network_keys')
                                             ->label(__('capell-socials::socials.admin.share_networks'))
                                             ->multiple()
-                                            ->options($this->shareNetworkOptions()),
+                                            ->options($this->shareNetworkOptions())
+                                            ->live(),
                                         Select::make('share_label_style')
                                             ->label(__('capell-socials::socials.admin.label_style'))
                                             ->options($this->labelStyleOptions())
+                                            ->live()
                                             ->required(),
                                         Toggle::make('share_open_in_new_tab')
-                                            ->label(__('capell-socials::socials.admin.open_in_new_tab')),
+                                            ->label(__('capell-socials::socials.admin.open_in_new_tab'))
+                                            ->live(),
                                     ])
                                     ->columns(2),
                             ]),
@@ -175,12 +184,14 @@ final class SocialsPage extends Page implements HasForms
                                 Section::make(__('capell-socials::socials.admin.follow_preview'))
                                     ->schema([
                                         ViewField::make('follow_preview')
-                                            ->view('capell-socials::filament.partials.follow-preview'),
+                                            ->view('capell-socials::filament.partials.follow-preview')
+                                            ->viewData(fn (): array => ['renderData' => $this->getFollowPreviewProperty()]),
                                     ]),
                                 Section::make(__('capell-socials::socials.admin.share_preview'))
                                     ->schema([
                                         ViewField::make('share_preview')
-                                            ->view('capell-socials::filament.partials.share-preview'),
+                                            ->view('capell-socials::filament.partials.share-preview')
+                                            ->viewData(fn (): array => ['renderData' => $this->getSharePreviewProperty()]),
                                     ]),
                             ]),
                     ])
