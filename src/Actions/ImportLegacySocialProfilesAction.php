@@ -11,6 +11,7 @@ use Capell\Socials\Data\LegacySocialImportResultData;
 use Capell\Socials\Models\SocialProfile;
 use Capell\Socials\Support\HttpUrlValidator;
 use Capell\Socials\Support\SocialsCacheEpoch;
+use Capell\Socials\Support\SocialSiteId;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Lorisleiva\Actions\Concerns\AsObject;
@@ -35,8 +36,10 @@ final class ImportLegacySocialProfilesAction
         $skipped = [];
 
         foreach ($sites as $site) {
-            if (SocialProfile::query()->where('site_id', $site->getKey())->exists()) {
-                $skipped[] = sprintf('Site %d already has Socials profiles.', $site->getKey());
+            $currentSiteId = SocialSiteId::from($site);
+
+            if (SocialProfile::query()->where('site_id', $currentSiteId)->exists()) {
+                $skipped[] = sprintf('Site %d already has Socials profiles.', $currentSiteId);
 
                 continue;
             }
@@ -47,7 +50,7 @@ final class ImportLegacySocialProfilesAction
                 continue;
             }
 
-            $siteId = (int) $site->getKey();
+            $siteId = $currentSiteId;
 
             DB::transaction(function () use ($siteId, $profiles, &$imported): void {
                 foreach ($profiles as $sortOrder => $profile) {
@@ -73,9 +76,13 @@ final class ImportLegacySocialProfilesAction
         return new LegacySocialImportResultData($sites->count(), $imported, $skipped);
     }
 
-    /** @param list<string> $skipped @return list<array{network_key:?string,profile_value:string,custom_label:?string}> */
+    /**
+     * @param  list<string>  $skipped
+     * @return list<array{network_key:?string,profile_value:string,custom_label:?string}>
+     */
     private function profilesFor(Site $site, array &$skipped): array
     {
+        $siteId = SocialSiteId::from($site);
         $legacyLinks = $site->getMeta('social_links', []);
         $legacyLinks = is_array($legacyLinks) ? $legacyLinks : [];
         $profiles = [];
@@ -98,7 +105,7 @@ final class ImportLegacySocialProfilesAction
 
             if ($network === null) {
                 if ($label === null || $label === '') {
-                    $skipped[] = sprintf('Skipped unlabeled custom legacy social link for site %d.', $site->getKey());
+                    $skipped[] = sprintf('Skipped unlabeled custom legacy social link for site %d.', $siteId);
 
                     continue;
                 }
@@ -106,7 +113,7 @@ final class ImportLegacySocialProfilesAction
                 try {
                     $this->httpUrlValidator->validate($url);
                 } catch (InvalidArgumentException) {
-                    $skipped[] = sprintf('Skipped invalid legacy social link for site %d.', $site->getKey());
+                    $skipped[] = sprintf('Skipped invalid legacy social link for site %d.', $siteId);
 
                     continue;
                 }
@@ -119,7 +126,7 @@ final class ImportLegacySocialProfilesAction
             try {
                 $normalized = $network->normalizer->normalize($url);
             } catch (InvalidArgumentException) {
-                $skipped[] = sprintf('Skipped invalid %s profile for site %d.', $network->key, $site->getKey());
+                $skipped[] = sprintf('Skipped invalid %s profile for site %d.', $network->key, $siteId);
 
                 continue;
             }
@@ -141,7 +148,7 @@ final class ImportLegacySocialProfilesAction
                         $normalized = $network->normalizer->normalize($twitter);
                         $profiles[] = ['network_key' => 'x', 'profile_value' => $normalized->url, 'custom_label' => null];
                     } catch (InvalidArgumentException) {
-                        $skipped[] = sprintf('Skipped invalid legacy Twitter profile for site %d.', $site->getKey());
+                        $skipped[] = sprintf('Skipped invalid legacy Twitter profile for site %d.', $siteId);
                     }
                 }
             }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Capell\Core\Models\Site;
 use Capell\Socials\Actions\ResolveSiteSocialProfilesAction;
 use Capell\Socials\Contracts\SocialProfilesResolver;
+use Capell\Socials\Data\SocialProfileConfigurationData;
 use Capell\Socials\Models\SocialProfile;
 use Capell\Socials\Support\BuiltIns\BuiltInSocialNetworkDefinitions;
 use Capell\Socials\Support\HttpUrlValidator;
@@ -141,6 +142,21 @@ it('omits invalid registered and incomplete custom profiles without breaking the
     ]);
 
     expect($action->handle(socialResolverSite(2), 'en')->profiles)->toBe([]);
+});
+
+it('builds public-safe preview data from unsaved configuration through the same resolver', function (): void {
+    $action = new ResolveSiteSocialProfilesAction(socialResolverRegistry(), new HttpUrlValidator);
+
+    $registered = $action->resolveConfiguration(new SocialProfileConfigurationData('twitter', '@capell', 'Follow Capell'));
+    $custom = $action->resolveConfiguration(new SocialProfileConfigurationData(null, 'https://example.com/community', 'Community'));
+    $invalid = $action->resolveConfiguration(new SocialProfileConfigurationData(null, 'javascript:alert(1)', 'Unsafe'));
+
+    expect($registered?->networkKey)->toBe('x')
+        ->and($registered?->url)->toBe('https://x.com/capell')
+        ->and($registered?->label)->toBe('Follow Capell')
+        ->and($custom?->networkKey)->toBe('custom')
+        ->and($custom?->icon)->toBe('link')
+        ->and($invalid)->toBeNull();
 });
 
 function socialResolverRegistry(): SocialNetworkRegistry

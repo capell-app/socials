@@ -13,6 +13,7 @@ use Capell\Socials\Models\SocialProfile;
 use Capell\Socials\Models\SocialSitePreferences;
 use Capell\Socials\Support\HttpUrlValidator;
 use Capell\Socials\Support\SocialsCacheEpoch;
+use Capell\Socials\Support\SocialSiteId;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Lorisleiva\Actions\Concerns\AsFake;
@@ -34,11 +35,7 @@ final class SaveSocialSiteConfigurationAction
      */
     public function handle(Site $site, array $profiles, SocialSitePreferencesData $preferences): SocialSitePreferences
     {
-        $siteId = (int) $site->getKey();
-
-        if ($siteId < 1) {
-            throw new InvalidArgumentException('A persisted site is required to save social configuration.');
-        }
+        $siteId = SocialSiteId::from($site);
 
         $profiles = $this->validatedProfiles($profiles);
 

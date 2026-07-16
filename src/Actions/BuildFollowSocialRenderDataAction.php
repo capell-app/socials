@@ -7,9 +7,12 @@ namespace Capell\Socials\Actions;
 use Capell\Core\Models\Site;
 use Capell\Socials\Data\SocialFollowRenderData;
 use Capell\Socials\Data\SocialFollowWidgetConfigData;
+use Capell\Socials\Data\SocialProfileConfigurationData;
 use Capell\Socials\Data\SocialProfileData;
+use Capell\Socials\Data\SocialSitePreferencesData;
 use Capell\Socials\Models\SocialSitePreferences;
 use Capell\Socials\Support\SocialsCacheEpoch;
+use Capell\Socials\Support\SocialSiteId;
 use Illuminate\Support\Facades\Cache;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -24,7 +27,7 @@ final class BuildFollowSocialRenderDataAction
 
     public function handle(Site $site, string $locale, SocialFollowWidgetConfigData $config): SocialFollowRenderData
     {
-        $siteId = (int) $site->getKey();
+        $siteId = SocialSiteId::from($site);
         $cacheKey = sprintf(
             'capell-socials:follow:%d:%s:%d:%s',
             $siteId,
@@ -57,5 +60,47 @@ final class BuildFollowSocialRenderDataAction
                 profiles: $profiles,
             );
         });
+    }
+
+    /**
+     * @param  list<SocialProfileConfigurationData>  $profiles
+     */
+    public function preview(
+        SocialFollowWidgetConfigData $config,
+        SocialSitePreferencesData $preferences,
+        array $profiles,
+    ): SocialFollowRenderData {
+        $renderedProfiles = [];
+
+        foreach ($profiles as $profile) {
+            if (! $profile->isEnabled) {
+                continue;
+            }
+
+            $renderedProfile = $this->profilesResolver->resolveConfiguration($profile);
+
+            if ($renderedProfile !== null) {
+                $renderedProfiles[] = $renderedProfile;
+            }
+        }
+
+        foreach ($config->customLinks as $customLink) {
+            $renderedProfiles[] = new SocialProfileData(
+                networkKey: 'custom',
+                label: $customLink->label,
+                url: $customLink->url,
+                handle: null,
+                icon: 'link',
+                capabilities: [],
+            );
+        }
+
+        return new SocialFollowRenderData(
+            heading: $config->heading,
+            labelStyle: $config->labelStyle ?? $preferences->followLabelStyle,
+            openInNewTab: $config->openInNewTab ?? $preferences->followOpenInNewTab,
+            alignment: $config->alignment,
+            profiles: $renderedProfiles,
+        );
     }
 }

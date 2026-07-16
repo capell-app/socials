@@ -31,7 +31,11 @@ final class BuiltInSocialNetworkDefinitions
         ];
     }
 
-    /** @param list<string> $aliases @param list<string> $hosts @param list<SocialNetworkCapability> $capabilities */
+    /**
+     * @param  list<string>  $aliases
+     * @param  non-empty-list<string>  $hosts
+     * @param  list<SocialNetworkCapability>  $capabilities
+     */
     private static function network(string $key, array $aliases, string $icon, array $hosts, string $pathPrefix, array $capabilities, ShareUrlGenerator|MessageShareUrlGenerator|null $shareUrlGenerator = null): SocialNetworkDefinitionData
     {
         $normalizer = new NetworkProfileNormalizer($hosts, $hosts[0], $pathPrefix);

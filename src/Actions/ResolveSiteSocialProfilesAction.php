@@ -7,10 +7,12 @@ namespace Capell\Socials\Actions;
 use Capell\Core\Models\Site;
 use Capell\Socials\Contracts\SocialNetworkRegistry;
 use Capell\Socials\Contracts\SocialProfilesResolver;
+use Capell\Socials\Data\SocialProfileConfigurationData;
 use Capell\Socials\Data\SocialProfileData;
 use Capell\Socials\Data\SocialProfilesData;
 use Capell\Socials\Models\SocialProfile;
 use Capell\Socials\Support\HttpUrlValidator;
+use Capell\Socials\Support\SocialSiteId;
 use InvalidArgumentException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -31,7 +33,7 @@ final class ResolveSiteSocialProfilesAction implements SocialProfilesResolver
     /** @param list<int>|null $profileIds */
     public function handle(Site $site, string $locale, ?array $profileIds = null): SocialProfilesData
     {
-        $siteId = (int) $site->getKey();
+        $siteId = SocialSiteId::from($site);
 
         $profiles = SocialProfile::query()
             ->where('site_id', $siteId)
@@ -44,7 +46,11 @@ final class ResolveSiteSocialProfilesAction implements SocialProfilesResolver
         $renderedProfiles = [];
 
         foreach ($profiles as $profile) {
-            $renderedProfile = $this->toPublicData($profile);
+            $renderedProfile = $this->toPublicData(
+                $profile->network_key,
+                $profile->profile_value,
+                $profile->custom_label,
+            );
 
             if ($renderedProfile !== null) {
                 $renderedProfiles[] = $renderedProfile;
@@ -54,27 +60,32 @@ final class ResolveSiteSocialProfilesAction implements SocialProfilesResolver
         return new SocialProfilesData($renderedProfiles);
     }
 
-    private function toPublicData(SocialProfile $profile): ?SocialProfileData
+    public function resolveConfiguration(SocialProfileConfigurationData $profile): ?SocialProfileData
     {
-        if ($profile->network_key === null) {
-            return $this->customProfileData($profile);
+        return $this->toPublicData($profile->networkKey, $profile->profileValue, $profile->customLabel);
+    }
+
+    private function toPublicData(?string $networkKey, string $profileValue, ?string $customLabel): ?SocialProfileData
+    {
+        if ($networkKey === null) {
+            return $this->customProfileData($profileValue, $customLabel);
         }
 
-        $network = $this->networkRegistry->get($profile->network_key);
+        $network = $this->networkRegistry->get($networkKey);
 
         if ($network === null) {
             return null;
         }
 
         try {
-            $normalized = $network->normalizer->normalize($profile->profile_value);
+            $normalized = $network->normalizer->normalize($profileValue);
         } catch (InvalidArgumentException) {
             return null;
         }
 
         return new SocialProfileData(
             networkKey: $network->key,
-            label: $this->labelFor($profile, $network->label),
+            label: $this->labelFor($customLabel, $network->label),
             url: $normalized->url,
             handle: $normalized->handle,
             icon: $network->icon,
@@ -82,10 +93,10 @@ final class ResolveSiteSocialProfilesAction implements SocialProfilesResolver
         );
     }
 
-    private function customProfileData(SocialProfile $profile): ?SocialProfileData
+    private function customProfileData(string $profileValue, ?string $customLabel): ?SocialProfileData
     {
-        $label = trim((string) $profile->custom_label);
-        $url = trim($profile->profile_value);
+        $label = trim((string) $customLabel);
+        $url = trim($profileValue);
 
         if ($label === '') {
             return null;
@@ -107,9 +118,9 @@ final class ResolveSiteSocialProfilesAction implements SocialProfilesResolver
         );
     }
 
-    private function labelFor(SocialProfile $profile, string $defaultLabel): string
+    private function labelFor(?string $customLabel, string $defaultLabel): string
     {
-        $customLabel = trim((string) $profile->custom_label);
+        $customLabel = trim((string) $customLabel);
 
         return $customLabel === '' ? $defaultLabel : $customLabel;
     }

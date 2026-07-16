@@ -31,7 +31,7 @@ final readonly class SocialShareWidgetConfigData
         $networkKeys = self::networkKeys($state['share_network_keys'] ?? null, $registry);
 
         return new self(
-            heading: $heading === '' ? null : mb_substr($heading, 0, 120),
+            heading: $heading === null || $heading === '' ? null : mb_substr($heading, 0, 120),
             labelStyle: self::labelStyle($state['label_style'] ?? 'inherit'),
             openInNewTab: self::linkTarget($state['link_target'] ?? 'inherit'),
             alignment: is_string($state['alignment'] ?? null) ? $state['alignment'] : 'start',

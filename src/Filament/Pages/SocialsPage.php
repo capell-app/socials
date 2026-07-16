@@ -6,19 +6,31 @@ namespace Capell\Socials\Filament\Pages;
 
 use BackedEnum;
 use Capell\Admin\Support\SiteScope;
+use Capell\Core\Models\Language;
+use Capell\Core\Models\Page as ContentPage;
 use Capell\Core\Models\Site;
+use Capell\Frontend\Actions\ResolvePageCanonicalUrlAction;
+use Capell\Socials\Actions\BuildFollowSocialRenderDataAction;
+use Capell\Socials\Actions\BuildShareSocialRenderDataAction;
 use Capell\Socials\Actions\SaveSocialSiteConfigurationAction;
 use Capell\Socials\Contracts\SocialNetworkRegistry;
+use Capell\Socials\Data\SharePageContextData;
+use Capell\Socials\Data\SocialFollowRenderData;
+use Capell\Socials\Data\SocialFollowWidgetConfigData;
 use Capell\Socials\Data\SocialProfileConfigurationData;
+use Capell\Socials\Data\SocialShareRenderData;
+use Capell\Socials\Data\SocialShareWidgetConfigData;
 use Capell\Socials\Data\SocialSitePreferencesData;
 use Capell\Socials\Enums\SocialLabelStyle;
 use Capell\Socials\Enums\SocialNetworkCapability;
 use Capell\Socials\Models\SocialProfile;
 use Capell\Socials\Models\SocialSitePreferences;
+use Capell\Socials\Support\SocialSiteId;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ViewField;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
@@ -29,11 +41,11 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
 use Override;
+use ValueError;
 
 /** @property Schema $form */
 final class SocialsPage extends Page implements HasForms
@@ -68,13 +80,13 @@ final class SocialsPage extends Page implements HasForms
     }
 
     #[Override]
-    public function getTitle(): string|Htmlable
+    public function getTitle(): string
     {
         return __('capell-socials::socials.admin.title');
     }
 
     #[Override]
-    public function getSubheading(): ?string
+    public function getSubheading(): string
     {
         return __('capell-socials::socials.admin.subheading');
     }
@@ -158,6 +170,19 @@ final class SocialsPage extends Page implements HasForms
                                     ])
                                     ->columns(2),
                             ]),
+                        Tab::make(__('capell-socials::socials.admin.preview'))
+                            ->schema([
+                                Section::make(__('capell-socials::socials.admin.follow_preview'))
+                                    ->schema([
+                                        ViewField::make('follow_preview')
+                                            ->view('capell-socials::filament.partials.follow-preview'),
+                                    ]),
+                                Section::make(__('capell-socials::socials.admin.share_preview'))
+                                    ->schema([
+                                        ViewField::make('share_preview')
+                                            ->view('capell-socials::filament.partials.share-preview'),
+                                    ]),
+                            ]),
                     ])
                     ->columnSpanFull(),
             ]);
@@ -171,14 +196,7 @@ final class SocialsPage extends Page implements HasForms
         SaveSocialSiteConfigurationAction::run(
             $site,
             $this->profilesFromState($state),
-            new SocialSitePreferencesData(
-                resolve(SocialNetworkRegistry::class),
-                SocialLabelStyle::from((string) ($state['follow_label_style'] ?? SocialLabelStyle::Icons->value)),
-                (bool) ($state['follow_open_in_new_tab'] ?? false),
-                Arr::wrap($state['share_network_keys'] ?? []),
-                SocialLabelStyle::from((string) ($state['share_label_style'] ?? SocialLabelStyle::Icons->value)),
-                (bool) ($state['share_open_in_new_tab'] ?? false),
-            ),
+            $this->preferencesFromState($state),
         );
 
         $this->fillForSite($site);
@@ -187,6 +205,65 @@ final class SocialsPage extends Page implements HasForms
             ->success()
             ->title(__('capell-socials::socials.admin.saved'))
             ->send();
+    }
+
+    public function getFollowPreviewProperty(): SocialFollowRenderData
+    {
+        $site = $this->selectedSite();
+
+        if (! $site instanceof Site) {
+            return new SocialFollowRenderData(null, SocialLabelStyle::Icons, false, 'start', []);
+        }
+
+        try {
+            return resolve(BuildFollowSocialRenderDataAction::class)->preview(
+                new SocialFollowWidgetConfigData(null, null, null, 'start', null, []),
+                $this->preferencesFromState($this->data),
+                $this->profilesFromState($this->data),
+            );
+        } catch (InvalidArgumentException|ValueError) {
+            return new SocialFollowRenderData(null, SocialLabelStyle::Icons, false, 'start', []);
+        }
+    }
+
+    public function getSharePreviewProperty(): ?SocialShareRenderData
+    {
+        $site = $this->selectedSite();
+
+        if (! $site instanceof Site) {
+            return null;
+        }
+
+        try {
+            $site->loadMissing('language');
+            $language = $site->language;
+
+            if (! $language instanceof Language) {
+                return null;
+            }
+
+            $homepage = ContentPage::getSiteHomePage($site, $language);
+
+            if (! $homepage instanceof ContentPage) {
+                return null;
+            }
+
+            $homepage->loadMissing(['canonicalPage.pageUrls.siteDomain', 'pageUrl.siteDomain', 'pageUrls.siteDomain']);
+            $canonicalUrl = ResolvePageCanonicalUrlAction::run($homepage, $language);
+            $title = trim(strip_tags((string) $homepage->title));
+
+            if ($canonicalUrl === null || $title === '') {
+                return null;
+            }
+
+            return resolve(BuildShareSocialRenderDataAction::class)->preview(
+                new SharePageContextData($canonicalUrl, $title, $language->code),
+                new SocialShareWidgetConfigData(null, null, null, 'start', null),
+                $this->preferencesFromState($this->data),
+            );
+        } catch (InvalidArgumentException|ValueError) {
+            return null;
+        }
     }
 
     /** @return Collection<int, Site> */
@@ -241,10 +318,10 @@ final class SocialsPage extends Page implements HasForms
         $this->form->fill($this->data);
     }
 
-    /** @return array<string, string> */
+    /** @return array<int|string, string> */
     private function siteOptions(): array
     {
-        return $this->sites()->mapWithKeys(static fn (Site $site): array => [(string) $site->getKey() => $site->name])->all();
+        return $this->sites()->mapWithKeys(static fn (Site $site): array => [(string) SocialSiteId::from($site) => $site->name])->all();
     }
 
     /** @return array<string, string> */
@@ -276,6 +353,37 @@ final class SocialsPage extends Page implements HasForms
     }
 
     /** @param array<string, mixed> $state */
+    private function preferencesFromState(array $state): SocialSitePreferencesData
+    {
+        $followLabelStyle = $state['follow_label_style'] ?? SocialLabelStyle::Icons->value;
+        $shareLabelStyle = $state['share_label_style'] ?? SocialLabelStyle::Icons->value;
+        $shareNetworkKeys = $state['share_network_keys'] ?? [];
+
+        if (! is_string($followLabelStyle) || ! is_string($shareLabelStyle) || ! is_array($shareNetworkKeys)) {
+            throw new InvalidArgumentException('Social preferences are invalid.');
+        }
+
+        $normalizedShareNetworkKeys = [];
+
+        foreach ($shareNetworkKeys as $shareNetworkKey) {
+            if (! is_string($shareNetworkKey)) {
+                throw new InvalidArgumentException('Social share networks are invalid.');
+            }
+
+            $normalizedShareNetworkKeys[] = $shareNetworkKey;
+        }
+
+        return new SocialSitePreferencesData(
+            resolve(SocialNetworkRegistry::class),
+            SocialLabelStyle::from($followLabelStyle),
+            (bool) ($state['follow_open_in_new_tab'] ?? false),
+            $normalizedShareNetworkKeys,
+            SocialLabelStyle::from($shareLabelStyle),
+            (bool) ($state['share_open_in_new_tab'] ?? false),
+        );
+    }
+
+    /** @param array<string, mixed> $state */
     private function siteFromState(array $state): Site
     {
         $siteId = $state['site_id'] ?? null;
@@ -299,7 +407,7 @@ final class SocialsPage extends Page implements HasForms
      */
     private function profilesFromState(array $state): array
     {
-        return collect(Arr::wrap($state['profiles'] ?? []))
+        return array_values(collect(Arr::wrap($state['profiles'] ?? []))
             ->map(static function (mixed $profile): SocialProfileConfigurationData {
                 if (! is_array($profile)) {
                     throw new InvalidArgumentException('Social profile data is invalid.');
@@ -315,6 +423,6 @@ final class SocialsPage extends Page implements HasForms
                 );
             })
             ->values()
-            ->all();
+            ->all());
     }
 }

@@ -39,7 +39,7 @@ final class SocialsBuilderBlock implements FilamentBuilderBlock
                     ->label(__('capell-socials::socials.widget.custom_links'))
                     ->schema([
                         TextInput::make('label')->required()->maxLength(120),
-                        TextInput::make('url')->required()->url(['http', 'https'])->maxLength(2048),
+                        TextInput::make('url')->required()->url()->maxLength(2048),
                     ])
                     ->visible(static fn (Get $get): bool => $get('mode') === 'follow')
                     ->maxItems(10),

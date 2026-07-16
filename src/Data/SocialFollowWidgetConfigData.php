@@ -39,7 +39,7 @@ final readonly class SocialFollowWidgetConfigData
         $customLinks = self::customLinks($state['custom_links'] ?? []);
 
         return new self(
-            heading: $heading === '' ? null : mb_substr($heading, 0, 120),
+            heading: $heading === null || $heading === '' ? null : mb_substr($heading, 0, 120),
             labelStyle: $labelStyle,
             openInNewTab: self::linkTarget($state['link_target'] ?? 'inherit'),
             alignment: is_string($state['alignment'] ?? null) ? $state['alignment'] : 'start',
