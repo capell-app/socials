@@ -1,0 +1,39 @@
+{
+    "whatThisPluginAdds": {
+        "text": "Socials adds site-scoped registered and custom social profiles, shared follow and share defaults, and an explicit Block Library widget.",
+        "evidence": [
+            "src/Filament/Pages/SocialsPage.php",
+            "src/Blocks/SocialsBlockDefinitionProvider.php",
+            "capell.json"
+        ]
+    },
+    "surfaceOutcome": {
+        "text": "Admins manage profiles and previews on the Socials page, then editors place follow or share links on selected pages. Visitors receive accessible links without social SDKs or tracking scripts.",
+        "evidence": [
+            "src/Filament/Pages/SocialsPage.php",
+            "src/Blocks/SocialsBlockRenderer.php",
+            "resources/views/blocks/socials.blade.php",
+            "tests/Unit/BuildShareLinksActionTest.php"
+        ]
+    },
+    "whyItMatters": {
+        "developers": {
+            "text": "The network registry, public resolver contract, and typed render data keep profile validation separate from admin forms and public rendering.",
+            "evidence": [
+                "src/Contracts/SocialNetworkRegistry.php",
+                "src/Contracts/SocialProfilesResolver.php",
+                "src/Actions/ResolveSiteSocialProfilesAction.php",
+                "tests/Unit/SocialNetworkRegistryTest.php"
+            ]
+        },
+        "teams": {
+            "text": "Teams can approve social profiles once per site, reuse them in follow blocks, and offer canonical page sharing without embedding third-party scripts.",
+            "evidence": [
+                "src/Actions/SaveSocialSiteConfigurationAction.php",
+                "src/Actions/BuildFollowSocialRenderDataAction.php",
+                "src/Actions/BuildShareSocialRenderDataAction.php",
+                "tests/Unit/ResolveSiteSocialProfilesActionTest.php"
+            ]
+        }
+    }
+}
