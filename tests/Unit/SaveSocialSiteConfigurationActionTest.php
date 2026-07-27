@@ -19,6 +19,7 @@ use Illuminate\Cache\Repository;
 use Illuminate\Container\Container;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\DatabaseTransactionsManager;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Application;
@@ -31,6 +32,7 @@ use Illuminate\Translation\Translator;
 beforeEach(function (): void {
     $this->previousContainer = Container::getInstance();
     $this->previousFacadeApplication = Facade::getFacadeApplication();
+    $this->previousModelEventDispatcher = Model::getEventDispatcher();
     $this->invalidatedSurrogateKeys = [];
 
     $capsule = new Capsule;
@@ -58,6 +60,7 @@ beforeEach(function (): void {
         $this->invalidatedSurrogateKeys[] = $event->surrogateKeys;
     });
     $container->instance('events', $events);
+    Model::setEventDispatcher($events);
 
     Container::setInstance($container);
     Facade::setFacadeApplication($container);
@@ -87,6 +90,12 @@ beforeEach(function (): void {
 
 afterEach(function (): void {
     Facade::clearResolvedInstances();
+    $previousDispatcher = $this->previousModelEventDispatcher;
+    if ($previousDispatcher instanceof Illuminate\Contracts\Events\Dispatcher) {
+        Model::setEventDispatcher($previousDispatcher);
+    } else {
+        Model::unsetEventDispatcher();
+    }
     Facade::setFacadeApplication($this->previousFacadeApplication);
     Container::setInstance($this->previousContainer);
 });

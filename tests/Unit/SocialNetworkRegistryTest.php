@@ -9,12 +9,6 @@ use Capell\Socials\Support\BuiltIns\BuiltInSocialNetworkDefinitions;
 use Capell\Socials\Support\NetworkProfileNormalizer;
 use Capell\Socials\Support\SocialNetworkRegistry;
 use Illuminate\Container\Container;
-use Illuminate\Translation\ArrayLoader;
-use Illuminate\Translation\Translator;
-
-beforeEach(function (): void {
-    app()->instance('translator', new Translator(new ArrayLoader, 'en'));
-});
 
 it('resolves built-in aliases to their canonical definition', function (): void {
     $registry = new SocialNetworkRegistry;

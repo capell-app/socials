@@ -7,8 +7,10 @@ use Capell\Socials\Models\SocialProfile;
 use Capell\Socials\Models\SocialSitePreferences;
 use Illuminate\Container\Container;
 use Illuminate\Database\Capsule\Manager as Capsule;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Facade;
@@ -17,6 +19,7 @@ use Illuminate\Support\Facades\Schema;
 beforeEach(function (): void {
     $this->previousContainer = Container::getInstance();
     $this->previousFacadeApplication = Facade::getFacadeApplication();
+    $this->previousModelEventDispatcher = Model::getEventDispatcher();
 
     $capsule = new Capsule;
     $capsule->addConnection([
@@ -30,6 +33,9 @@ beforeEach(function (): void {
     $container = new Application;
     $container->instance('db', $capsule->getDatabaseManager());
     $container->instance('db.schema', $capsule->schema());
+    $events = new Dispatcher($container);
+    $container->instance('events', $events);
+    Model::setEventDispatcher($events);
     Container::setInstance($container);
     Facade::setFacadeApplication($container);
     Facade::clearResolvedInstances();
@@ -48,6 +54,12 @@ beforeEach(function (): void {
 
 afterEach(function (): void {
     Facade::clearResolvedInstances();
+    $previousDispatcher = $this->previousModelEventDispatcher;
+    if ($previousDispatcher instanceof Illuminate\Contracts\Events\Dispatcher) {
+        Model::setEventDispatcher($previousDispatcher);
+    } else {
+        Model::unsetEventDispatcher();
+    }
     Facade::setFacadeApplication($this->previousFacadeApplication);
     Container::setInstance($this->previousContainer);
 });
