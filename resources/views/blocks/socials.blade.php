@@ -23,7 +23,7 @@
                             class="capell-socials__icon"
                             aria-hidden="true"
                         >
-                            @include ('capell-socials::blocks.icon', ['icon' => $link->icon])
+                            @include('capell-socials::blocks.icon', ['icon' => $link->icon])
                         </span>
                     @endif
                     @if ($renderData->labelStyle !== \Capell\Socials\Enums\SocialLabelStyle::Icons)
