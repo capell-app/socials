@@ -95,6 +95,28 @@
             "notes": "Capture diagnostics or documentation proving canonical keys, aliases, and an intentional network override.",
             "useCase": "A developer extends social network definitions without coupling public output to package internals.",
             "screenshotPath": "packages/socials/docs/screenshots/socials-registry-extension.png"
+        },
+        {
+            "id": "socials-admin-sidebar-menu-open",
+            "title": "Site-scoped Socials management with admin sidebar menu open.",
+            "package": "socials",
+            "surface": "admin",
+            "targetType": "admin-page",
+            "target": "SocialsPage.profiles",
+            "scenario": "admin-form",
+            "url": "/socials",
+            "waitFor": "form",
+            "colorSchemes": ["light"],
+            "required": false,
+            "notes": "Capture the site switcher and orderable profile editor with registered and custom links. Capture this same admin surface with the fully collapsible sidebar opened.",
+            "useCase": "An administrator manages trusted public profiles for only the sites they may access.",
+            "screenshotPath": "packages/socials/docs/screenshots/socials-admin-sidebar-menu-open.png",
+            "beforeWait": [
+                {
+                    "type": "click",
+                    "selector": ".fi-topbar-open-collapse-sidebar-btn"
+                }
+            ]
         }
     ]
 }
