@@ -40,7 +40,7 @@
             "interactions": [
                 {
                     "type": "click",
-                    "selector": "button[data-tab-key^=\"preview::\"]"
+                    "selector": "button[role=\"tab\"]:has-text(\"Preview\")"
                 },
                 {
                     "type": "waitFor",

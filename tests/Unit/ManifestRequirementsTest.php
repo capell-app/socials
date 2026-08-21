@@ -118,6 +118,16 @@ it('declares the shipped Socials package surfaces and Marketplace assets', funct
         ...$requiredScreenshotPaths,
     ]);
 
+    $previewEntry = collect($contractEntries)
+        ->first(static fn (mixed $entry): bool => is_array($entry) && ($entry['id'] ?? null) === 'socials-defaults-and-preview');
+
+    expect($previewEntry)->toMatchArray([
+        'interactions' => [
+            ['type' => 'click', 'selector' => 'button[role="tab"]:has-text("Preview")'],
+            ['type' => 'waitFor', 'selector' => '.capell-socials'],
+        ],
+    ]);
+
     foreach ($requiredScreenshotPaths as $path) {
         expect(is_file($packagePath . '/' . $path))->toBeTrue();
     }

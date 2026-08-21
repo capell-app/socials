@@ -12,6 +12,7 @@ use Capell\Socials\Actions\RegisterBuiltInSocialNetworksAction;
 use Capell\Socials\Actions\ResolveSiteSocialProfilesAction;
 use Capell\Socials\Blocks\SocialsBlockDefinitionProvider;
 use Capell\Socials\Console\Commands\InstallSocialsCommand;
+use Capell\Socials\Console\Commands\SeedSocialsScreenshotFixtureCommand;
 use Capell\Socials\Contracts\SocialNetworkRegistry as SocialNetworkRegistryContract;
 use Capell\Socials\Contracts\SocialProfilesResolver;
 use Capell\Socials\Filament\BuilderBlocks\SocialsBuilderBlock;
@@ -35,7 +36,10 @@ final class SocialsServiceProvider extends AbstractPackageServiceProvider
             ->name(self::$name)
             ->hasTranslations()
             ->hasViews(self::$name)
-            ->hasCommands([InstallSocialsCommand::class])
+            ->hasCommands([
+                InstallSocialsCommand::class,
+                SeedSocialsScreenshotFixtureCommand::class,
+            ])
             ->hasMigrations([
                 '2026_07_16_000001_create_social_profiles_table',
                 '2026_07_16_000002_create_social_site_preferences_table',
