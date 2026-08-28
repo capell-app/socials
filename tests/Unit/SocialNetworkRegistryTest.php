@@ -75,6 +75,7 @@ it('keeps the current definition when an override is invalid', function (): void
 
 it('resolves registry labels per locale instead of freezing the registration-time translation', function (): void {
     $translator = Container::getInstance()->make('translator');
+    $translator->addLines(['socials.networks.x' => 'X'], 'en', 'capell-socials');
     $translator->addLines(['socials.networks.x' => 'Zwitscher'], 'de', 'capell-socials');
 
     $registry = new SocialNetworkRegistry;
