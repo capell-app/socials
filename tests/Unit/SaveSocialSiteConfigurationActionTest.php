@@ -47,6 +47,7 @@ beforeEach(function (): void {
     $container = new Application;
     $loader = new ArrayLoader;
     $loader->addMessages('en', 'capell-socials::socials', require dirname(__DIR__, 2) . '/resources/lang/en/socials.php');
+
     $container->instance('translator', new Translator($loader, 'en'));
     $container->instance('db', $capsule->getDatabaseManager());
     $container->instance('db.schema', $capsule->schema());
@@ -72,8 +73,10 @@ beforeEach(function (): void {
 
     $createProfiles = require dirname(__DIR__, 2) . '/database/migrations/2026_07_16_000001_create_social_profiles_table.php';
     $createPreferences = require dirname(__DIR__, 2) . '/database/migrations/2026_07_16_000002_create_social_site_preferences_table.php';
+    $addShareCustomised = require dirname(__DIR__, 2) . '/database/migrations/2026_08_31_000001_add_share_networks_customised_to_social_site_preferences.php';
     $createProfiles->up();
     $createPreferences->up();
+    $addShareCustomised->up();
 
     DB::table('sites')->insert([
         ['id' => 1],
@@ -96,6 +99,7 @@ afterEach(function (): void {
     } else {
         Model::unsetEventDispatcher();
     }
+
     Facade::setFacadeApplication($this->previousFacadeApplication);
     Container::setInstance($this->previousContainer);
 });
@@ -116,6 +120,7 @@ it('transactionally replaces a site configuration and invalidates only its cache
         ['twitter', 'linkedin'],
         SocialLabelStyle::IconsAndLabels,
         true,
+        shareNetworksCustomised: true,
     );
 
     $savedPreferences = $this->action->handle(saveSocialsSite(1), [
@@ -141,9 +146,40 @@ it('transactionally replaces a site configuration and invalidates only its cache
         ->and($customProfile->custom_label)->toBe('Community')
         ->and($customProfile->is_enabled)->toBeFalse()
         ->and(SocialSitePreferences::query()->where('site_id', 1)->sole()->share_network_keys)->toBe(['x', 'linkedin'])
+        ->and(SocialSitePreferences::query()->where('site_id', 1)->sole()->share_networks_customised)->toBeTrue()
         ->and($this->cacheEpoch->current(1))->toBe(2)
         ->and($this->cacheEpoch->current(2))->toBe(1)
         ->and($this->invalidatedSurrogateKeys)->toBe([['site-1']]);
+});
+
+it('persists the capability-backed recommended share set and leaves sharing uncustomised by default', function (): void {
+    $preferences = new SocialSitePreferencesData(saveSocialsRegistry());
+
+    $this->action->handle(saveSocialsSite(1), [
+        new SocialProfileConfigurationData('x', '@capell', 'Capell on X', true),
+    ], $preferences);
+
+    $stored = SocialSitePreferences::query()->where('site_id', 1)->sole();
+
+    expect($stored->share_networks_customised)->toBeFalse()
+        ->and($stored->share_network_keys)->toBe(['x', 'facebook', 'linkedin', 'pinterest', 'whatsapp', 'bluesky']);
+});
+
+it('persists exactly the editor-selected share networks when sharing is customised', function (): void {
+    $preferences = new SocialSitePreferencesData(
+        saveSocialsRegistry(),
+        shareNetworkKeys: ['linkedin', 'x'],
+        shareNetworksCustomised: true,
+    );
+
+    $this->action->handle(saveSocialsSite(2), [
+        new SocialProfileConfigurationData('x', '@capell', null, true),
+    ], $preferences);
+
+    $stored = SocialSitePreferences::query()->where('site_id', 2)->sole();
+
+    expect($stored->share_networks_customised)->toBeTrue()
+        ->and($stored->share_network_keys)->toBe(['linkedin', 'x']);
 });
 
 it('rejects duplicate canonical networks and unsafe or incomplete custom links without changing a site', function (): void {

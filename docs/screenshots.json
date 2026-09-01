@@ -24,24 +24,20 @@
         },
         {
             "id": "socials-defaults-and-preview",
-            "title": "Follow/share defaults and unsaved preview.",
+            "title": "Follow and share appearance beside the unsaved preview.",
             "package": "socials",
             "surface": "admin",
             "targetType": "admin-page",
-            "target": "SocialsPage.defaults-preview",
+            "target": "SocialsPage.appearance-preview",
             "scenario": "admin-form",
             "url": "/socials",
             "waitFor": "form",
             "colorSchemes": ["light"],
             "required": true,
-            "notes": "Capture the live preview tab rendered from the site's saved follow/share defaults.",
-            "useCase": "An editor checks link treatment and sharing defaults before saving.",
+            "notes": "Capture the follow and share appearance controls sitting beside the live unsaved follow/share preview on the same surface, including the dirty and validation/save-error states.",
+            "useCase": "An editor checks link treatment and sharing before saving, without leaving the setup page.",
             "screenshotPath": "packages/socials/docs/screenshots/socials-defaults-and-preview.png",
             "interactions": [
-                {
-                    "type": "click",
-                    "selector": "button[role=\"tab\"]:has-text(\"Preview\")"
-                },
                 {
                     "type": "waitFor",
                     "selector": ".capell-socials"
@@ -63,6 +59,80 @@
             "notes": "Capture registered and custom follow anchors from an explicitly placed widget.",
             "useCase": "Visitors can follow a site's verified profiles without loading a social SDK.",
             "screenshotPath": "packages/socials/docs/screenshots/socials-follow-widget.png"
+        },
+        {
+            "id": "socials-unsaved-preview",
+            "title": "Unsaved follow and share preview.",
+            "package": "socials",
+            "surface": "admin",
+            "targetType": "admin-page",
+            "target": "SocialsPage.appearance-preview-unsaved",
+            "scenario": "admin-form",
+            "url": "/socials",
+            "waitFor": "[data-capell-socials-save]",
+            "colorSchemes": ["light", "dark"],
+            "required": false,
+            "notes": "Capture the dirty form state only after the first UUID-keyed repeater row is expanded, its public label override is changed, the unsaved preview shows that label, and the persistent save status reports dirty.",
+            "useCase": "An editor verifies changed follow and share appearance before saving.",
+            "screenshotPath": "packages/socials/docs/screenshots/socials-unsaved-preview.png",
+            "interactions": [
+                {
+                    "type": "click",
+                    "selector": ".fi-fo-repeater-item:first-child .fi-fo-repeater-item-header"
+                },
+                {
+                    "type": "click",
+                    "selector": ".fi-fo-repeater-item:first-child [data-capell-socials-profile-label-toggle]"
+                },
+                {
+                    "type": "fill",
+                    "selector": ".fi-fo-repeater-item:first-child [data-capell-socials-profile-custom-label]",
+                    "value": "Follow this site"
+                },
+                {
+                    "type": "waitFor",
+                    "selector": "[data-capell-socials-admin-preview] a[aria-label=\"Follow this site\"]"
+                },
+                {
+                    "type": "waitFor",
+                    "selector": "[data-capell-socials-save-status=\"dirty\"]"
+                }
+            ]
+        },
+        {
+            "id": "socials-save-error",
+            "title": "Socials validation and save error state.",
+            "package": "socials",
+            "surface": "admin",
+            "targetType": "admin-page",
+            "target": "SocialsPage.save-error",
+            "scenario": "admin-form",
+            "url": "/socials",
+            "waitFor": "[data-capell-socials-save]",
+            "colorSchemes": ["light", "dark"],
+            "required": false,
+            "notes": "Capture only after the first UUID-keyed repeater row is expanded, its X value is replaced with a Facebook URL, Save Socials is submitted, and the persistent save status reports error.",
+            "useCase": "An editor receives an accessible error state when Socials cannot be saved.",
+            "screenshotPath": "packages/socials/docs/screenshots/socials-save-error.png",
+            "interactions": [
+                {
+                    "type": "click",
+                    "selector": ".fi-fo-repeater-item:first-child .fi-fo-repeater-item-header"
+                },
+                {
+                    "type": "fill",
+                    "selector": ".fi-fo-repeater-item:first-child [data-capell-socials-profile-value]",
+                    "value": "https://facebook.com/capell"
+                },
+                {
+                    "type": "click",
+                    "selector": "[data-capell-socials-save]"
+                },
+                {
+                    "type": "waitFor",
+                    "selector": "[data-capell-socials-save-status=\"error\"]"
+                }
+            ]
         },
         {
             "id": "socials-share-widget",

@@ -32,6 +32,7 @@ it('normalizes unique share network keys while retaining the supplied preference
         shareNetworkKeys: [' X ', 'facebook', 'twitter'],
         shareLabelStyle: SocialLabelStyle::IconsAndLabels,
         shareOpenInNewTab: true,
+        shareNetworksCustomised: true,
     );
 
     expect($preferences->followLabelStyle)->toBe(SocialLabelStyle::Labels)
@@ -41,10 +42,11 @@ it('normalizes unique share network keys while retaining the supplied preference
         ->and($preferences->shareOpenInNewTab)->toBeTrue();
 });
 
-it('rejects invalid share network keys', function (array $shareNetworkKeys, string $message): void {
+it('rejects invalid share network keys only when sharing is customised', function (array $shareNetworkKeys, string $message): void {
     expect(fn (): SocialSitePreferencesData => new SocialSitePreferencesData(
         networkRegistry: socialNetworkRegistryWithBuiltIns(),
         shareNetworkKeys: $shareNetworkKeys,
+        shareNetworksCustomised: true,
     ))
         ->toThrow(InvalidArgumentException::class, $message);
 })->with(/** @return array<string, array{list<mixed>, string}> */ fn (): array => [
@@ -53,3 +55,36 @@ it('rejects invalid share network keys', function (array $shareNetworkKeys, stri
     'follow-only network' => [['mastodon'], 'Social network [mastodon] does not support sharing.'],
     'unknown network' => [['made-up'], 'Social network [made-up] is not registered.'],
 ]);
+
+it('derives the capability-backed recommended share set when sharing is not customised', function (): void {
+    $preferences = new SocialSitePreferencesData(
+        networkRegistry: socialNetworkRegistryWithBuiltIns(),
+        shareNetworkKeys: [],
+    );
+
+    expect($preferences->shareNetworksCustomised)->toBeFalse()
+        ->and($preferences->shareNetworkKeys)->toBe(['x', 'facebook', 'linkedin', 'pinterest', 'whatsapp', 'bluesky'])
+        ->and($preferences->recommendedShareNetworkKeys)->toBe(['x', 'facebook', 'linkedin', 'pinterest', 'whatsapp', 'bluesky']);
+});
+
+it('ignores supplied share networks entirely when sharing is not customised', function (): void {
+    $preferences = new SocialSitePreferencesData(
+        networkRegistry: socialNetworkRegistryWithBuiltIns(),
+        shareNetworkKeys: ['facebook'],
+        shareNetworksCustomised: false,
+    );
+
+    expect($preferences->shareNetworkKeys)->toBe(['x', 'facebook', 'linkedin', 'pinterest', 'whatsapp', 'bluesky']);
+});
+
+it('keeps the editor-selected share networks when sharing is customised', function (): void {
+    $preferences = new SocialSitePreferencesData(
+        networkRegistry: socialNetworkRegistryWithBuiltIns(),
+        shareNetworkKeys: [' Facebook ', 'x', 'facebook'],
+        shareNetworksCustomised: true,
+    );
+
+    expect($preferences->shareNetworksCustomised)->toBeTrue()
+        ->and($preferences->shareNetworkKeys)->toBe(['facebook', 'x'])
+        ->and($preferences->recommendedShareNetworkKeys)->toBe(['x', 'facebook', 'linkedin', 'pinterest', 'whatsapp', 'bluesky']);
+});

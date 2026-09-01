@@ -32,7 +32,7 @@ final class SeedSocialsScreenshotFixtureAction
         return SaveSocialSiteConfigurationAction::run(
             $site,
             [
-                new SocialProfileConfigurationData('x', '@capell', 'Capell on X'),
+                new SocialProfileConfigurationData('x', '@capell'),
                 new SocialProfileConfigurationData('linkedin', 'capell', 'Capell on LinkedIn'),
                 new SocialProfileConfigurationData(null, 'https://example.test/community', 'Community'),
             ],
@@ -43,6 +43,7 @@ final class SeedSocialsScreenshotFixtureAction
                 ['x', 'linkedin'],
                 SocialLabelStyle::Labels,
                 true,
+                shareNetworksCustomised: true,
             ),
         );
     }

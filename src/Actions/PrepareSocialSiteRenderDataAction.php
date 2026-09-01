@@ -8,12 +8,15 @@ use Capell\Core\Models\Site;
 use Capell\Socials\Contracts\SocialNetworkRegistry;
 use Capell\Socials\Data\PreparedSocialProfileData;
 use Capell\Socials\Data\PreparedSocialSiteData;
+use Capell\Socials\Data\SocialNetworkDefinitionData;
 use Capell\Socials\Data\SocialProfileConfigurationData;
 use Capell\Socials\Data\SocialProfileData;
+use Capell\Socials\Data\SocialSitePreferencesData;
 use Capell\Socials\Enums\SocialLabelStyle;
 use Capell\Socials\Enums\SocialNetworkCapability;
 use Capell\Socials\Models\SocialProfile;
 use Capell\Socials\Models\SocialSitePreferences;
+use Capell\Socials\Support\SocialNetworkRegistrySignature;
 use Capell\Socials\Support\SocialsCacheEpoch;
 use Capell\Socials\Support\SocialSiteId;
 use Illuminate\Support\Facades\Cache;
@@ -44,11 +47,12 @@ final class PrepareSocialSiteRenderDataAction
     {
         $siteId = SocialSiteId::from($site);
         $cacheKey = sprintf(
-            'capell-socials:prepared:%s:%d:%s:%d',
+            'capell-socials:prepared:%s:%d:%s:%d:%s',
             self::CACHE_SHAPE,
             $siteId,
             $locale,
             $this->cacheEpoch->current($siteId),
+            SocialNetworkRegistrySignature::for($this->networkRegistry, $locale),
         );
 
         // Cache a serialization-stable plain array — never the hydrated DTO
@@ -117,7 +121,7 @@ final class PrepareSocialSiteRenderDataAction
                     is_string($handle) ? $handle : null,
                     $this->stringValue($rawProfile['icon'] ?? null),
                     array_map(
-                        static fn (string $capability): SocialNetworkCapability => SocialNetworkCapability::from($capability),
+                        SocialNetworkCapability::from(...),
                         $rawCapabilities,
                     ),
                 ),
@@ -152,7 +156,9 @@ final class PrepareSocialSiteRenderDataAction
         $preferences = $hasPreferences ? $storedPreferences : new SocialSitePreferences;
         $followLabelStyle = $preferences->follow_label_style ?? SocialLabelStyle::Icons;
         $followOpenInNewTab = $preferences->follow_open_in_new_tab ?? false;
-        $shareNetworkKeys = $this->releasedShareNetworkKeys($preferences->share_network_keys ?? []);
+        $shareNetworkKeys = ($preferences->share_networks_customised ?? false)
+            ? $this->releasedShareNetworkKeys($preferences->share_network_keys ?? [])
+            : SocialSitePreferencesData::recommendedShareNetworkKeys($this->networkRegistry);
         $shareLabelStyle = $preferences->share_label_style ?? SocialLabelStyle::Icons;
         $shareOpenInNewTab = $preferences->share_open_in_new_tab ?? false;
 
@@ -196,7 +202,7 @@ final class PrepareSocialSiteRenderDataAction
         return array_values(array_filter($networkKeys, function (string $networkKey): bool {
             $network = $this->networkRegistry->get($networkKey);
 
-            return $network !== null && $network->supports(SocialNetworkCapability::Share);
+            return $network instanceof SocialNetworkDefinitionData && $network->supports(SocialNetworkCapability::Share);
         }));
     }
 }

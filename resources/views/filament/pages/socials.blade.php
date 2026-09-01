@@ -26,14 +26,86 @@
         }
     </style>
 
+    @if ($showSiteSwitchPrompt)
+        <div
+            role="alertdialog"
+            aria-labelledby="capell-socials-switch-heading"
+            aria-describedby="capell-socials-switch-body"
+            class="fi-section rounded-xl bg-amber-50 p-4 ring-1 ring-amber-500/30 dark:bg-amber-500/10 dark:ring-amber-400/30"
+        >
+            <h2
+                id="capell-socials-switch-heading"
+                class="text-base font-semibold text-amber-900 dark:text-amber-200"
+            >
+                {{ __('capell-socials::socials.admin.switch_site.heading', ['site' => $activeSiteName]) }}
+            </h2>
+            <p id="capell-socials-switch-body" class="mt-1 text-sm text-amber-800 dark:text-amber-200/80">
+                {{ __('capell-socials::socials.admin.switch_site.body', ['site' => $activeSiteName]) }}
+            </p>
+
+            <div class="mt-4 flex flex-wrap gap-3">
+                <x-filament::button
+                    wire:click="saveAndSwitchSite"
+                    wire:target="saveAndSwitchSite"
+                    wire:loading.attr="disabled"
+                >
+                    {{ __('capell-socials::socials.admin.switch_site.save') }}
+                </x-filament::button>
+                <x-filament::button
+                    color="gray"
+                    wire:click="discardAndSwitchSite"
+                >
+                    {{ __('capell-socials::socials.admin.switch_site.discard') }}
+                </x-filament::button>
+                <x-filament::button
+                    color="gray"
+                    wire:click="stayOnCurrentSite"
+                >
+                    {{ __('capell-socials::socials.admin.switch_site.stay', ['site' => $activeSiteName]) }}
+                </x-filament::button>
+            </div>
+        </div>
+    @endif
+
     <form wire:submit="save">
         {{ $this->form }}
 
-        <x-filament::button
-            class="mt-6"
-            type="submit"
-        >
-            {{ __('capell-socials::socials.admin.save') }}
-        </x-filament::button>
+        <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <x-filament::button
+                data-capell-socials-save
+                type="submit"
+                wire:target="save"
+                wire:loading.attr="disabled"
+                :color="$saveState === 'error' ? 'danger' : 'primary'"
+            >
+                <span
+                    wire:loading.remove
+                    wire:target="save"
+                    >{{ __('capell-socials::socials.admin.save') }}</span
+                >
+                <span
+                    wire:loading
+                    wire:target="save"
+                    >{{ __('capell-socials::socials.admin.save_states.saving') }}</span
+                >
+            </x-filament::button>
+
+            <p
+                data-capell-socials-save-status="{{ $saveState === 'error' ? 'error' : ($this->isDirty() ? 'dirty' : $saveState) }}"
+                class="text-sm text-gray-500 dark:text-gray-400"
+                role="status"
+                aria-live="polite"
+                wire:loading.remove
+                wire:target="save"
+            >
+                @if ($saveState === 'error')
+                    {{ __('capell-socials::socials.admin.save_states.error') }}
+                @elseif ($this->isDirty())
+                    {{ __('capell-socials::socials.admin.save_states.dirty') }}
+                @elseif ($saveState === 'saved')
+                    {{ __('capell-socials::socials.admin.save_states.saved') }}
+                @endif
+            </p>
+        </div>
     </form>
 </x-filament-panels::page>

@@ -43,6 +43,7 @@ beforeEach(function (): void {
     $container = new Application;
     $loader = new ArrayLoader;
     $loader->addMessages('en', 'capell-socials::socials', require dirname(__DIR__, 2) . '/resources/lang/en/socials.php');
+
     $container->instance('translator', new Translator($loader, 'en'));
     $container->instance('db', $capsule->getDatabaseManager());
     $container->instance('db.schema', $capsule->schema());
@@ -70,8 +71,12 @@ beforeEach(function (): void {
 
     $createProfiles = require dirname(__DIR__, 2) . '/database/migrations/2026_07_16_000001_create_social_profiles_table.php';
     $createProfiles->up();
+
     $createPreferences = require dirname(__DIR__, 2) . '/database/migrations/2026_07_16_000002_create_social_site_preferences_table.php';
     $createPreferences->up();
+
+    $addShareCustomised = require dirname(__DIR__, 2) . '/database/migrations/2026_08_31_000001_add_share_networks_customised_to_social_site_preferences.php';
+    $addShareCustomised->up();
 
     $this->cacheEpoch = new SocialsCacheEpoch(new Repository(new ArrayStore));
     $this->action = new ImportLegacySocialProfilesAction(
@@ -89,6 +94,7 @@ afterEach(function (): void {
     } else {
         Model::unsetEventDispatcher();
     }
+
     Facade::setFacadeApplication($this->previousFacadeApplication);
     Container::setInstance($this->previousContainer);
 });

@@ -7,6 +7,7 @@ namespace Capell\Socials\Actions;
 use Capell\Core\Events\FrontendSurrogateKeysInvalidated;
 use Capell\Core\Models\Site;
 use Capell\Socials\Contracts\SocialNetworkRegistry;
+use Capell\Socials\Data\SocialNetworkDefinitionData;
 use Capell\Socials\Data\SocialProfileConfigurationData;
 use Capell\Socials\Data\SocialSitePreferencesData;
 use Capell\Socials\Models\SocialProfile;
@@ -61,6 +62,7 @@ final class SaveSocialSiteConfigurationAction
                     'follow_label_style' => $preferences->followLabelStyle,
                     'follow_open_in_new_tab' => $preferences->followOpenInNewTab,
                     'share_network_keys' => $preferences->shareNetworkKeys,
+                    'share_networks_customised' => $preferences->shareNetworksCustomised,
                     'share_label_style' => $preferences->shareLabelStyle,
                     'share_open_in_new_tab' => $preferences->shareOpenInNewTab,
                 ],
@@ -100,7 +102,7 @@ final class SaveSocialSiteConfigurationAction
 
             $network = $this->networkRegistry->get($profile->networkKey);
 
-            if ($network === null) {
+            if (! $network instanceof SocialNetworkDefinitionData) {
                 throw new InvalidArgumentException(sprintf('Social network [%s] is not registered.', trim($profile->networkKey)));
             }
 

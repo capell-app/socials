@@ -58,16 +58,18 @@ it('seeds enabled profiles and defaults for the disposable Socials preview', fun
         expect($second->getKey())->toBe($first->getKey())
             ->and($profiles)->toHaveCount(3)
             ->and($profiles->pluck('network_key')->all())->toBe(['x', 'linkedin', null])
+            ->and($profiles->first()?->custom_label)->toBeNull()
             ->and($profiles->every(fn (SocialProfile $profile): bool => $profile->is_enabled))->toBeTrue()
             ->and(SocialSitePreferences::query()->where('site_id', $this->site->getKey())->sole()->follow_label_style)->toBe(SocialLabelStyle::IconsAndLabels)
             ->and($second->share_network_keys)->toBe(['x', 'linkedin'])
+            ->and($second->share_networks_customised)->toBeTrue()
             ->and($second->share_label_style)->toBe(SocialLabelStyle::Labels);
     });
 });
 
 it('registers the guarded fixture command for the disposable screenshot app', function (): void {
     withSocialsScreenshotFixtureEnvironment(function (): void {
-        test()->artisan('capell:socials-screenshot-fixture', ['--force' => true])
+        capell_artisan('capell:socials-screenshot-fixture', ['--force' => true])
             ->expectsOutput('Socials screenshot fixture initialized.')
             ->assertSuccessful();
 

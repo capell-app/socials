@@ -43,6 +43,7 @@ final class SocialsServiceProvider extends AbstractPackageServiceProvider
             ->hasMigrations([
                 '2026_07_16_000001_create_social_profiles_table',
                 '2026_07_16_000002_create_social_site_preferences_table',
+                '2026_08_31_000001_add_share_networks_customised_to_social_site_preferences',
             ]);
     }
 

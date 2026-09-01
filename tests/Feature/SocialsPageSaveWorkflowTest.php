@@ -4,17 +4,27 @@ declare(strict_types=1);
 
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
+use Capell\Socials\Actions\BuildShareSocialRenderDataAction;
 use Capell\Socials\Actions\PrepareSocialSiteRenderDataAction;
 use Capell\Socials\Data\PreparedSocialSiteData;
+use Capell\Socials\Data\SharePageContextData;
+use Capell\Socials\Data\SocialNetworkDefinitionData;
 use Capell\Socials\Data\SocialProfileData;
+use Capell\Socials\Data\SocialShareWidgetConfigData;
+use Capell\Socials\Enums\SocialNetworkCapability;
 use Capell\Socials\Filament\Pages\SocialsPage;
 use Capell\Socials\Models\SocialProfile;
 use Capell\Socials\Models\SocialSitePreferences;
+use Capell\Socials\Support\NetworkProfileNormalizer;
+use Capell\Socials\Support\ShareUrlGenerator;
+use Capell\Socials\Support\SocialNetworkRegistry;
+use Capell\Socials\Support\SocialNetworkRegistrySignature;
 use Capell\Socials\Support\SocialsCacheEpoch;
 use Capell\Tests\Fixtures\Models\User;
 use Filament\Facades\Filament;
 use Filament\Panel;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
 
@@ -47,12 +57,96 @@ beforeEach(function (): void {
     $authorizedUser = User::factory()->create();
     $authorizedUser->givePermissionTo(SocialsPage::VIEW_PERMISSION);
     $authorizedUser->assignRole('super_admin');
+
     test()->actingAs($authorizedUser);
 
     migrateSocialsPageSaveWorkflowTables();
 
     $language = Language::factory()->create();
     $this->site = Site::factory()->default()->create(['language_id' => $language->id]);
+});
+
+it('prepares the current recommended share set for uncustomised public output', function (): void {
+    DB::table('social_site_preferences')->insert([
+        'site_id' => $this->site->getKey(),
+        'share_network_keys' => json_encode(['x']),
+        'share_networks_customised' => false,
+    ]);
+
+    $prepared = PrepareSocialSiteRenderDataAction::run($this->site, 'en');
+
+    expect($prepared->shareNetworkKeys)->toBe(['x', 'facebook', 'linkedin', 'pinterest', 'whatsapp', 'bluesky']);
+});
+
+it('uses registry recommendations or exact customised keys in the direct share fallback', function (): void {
+    $context = new SharePageContextData('https://capell.test/guide', 'Guide', 'en');
+    $config = new SocialShareWidgetConfigData('Share', null, null, 'start', null);
+
+    DB::table('social_site_preferences')->insert([
+        'site_id' => $this->site->getKey(),
+        'share_network_keys' => json_encode(['x'], JSON_THROW_ON_ERROR),
+        'share_networks_customised' => false,
+    ]);
+
+    $recommended = BuildShareSocialRenderDataAction::run($this->site, $context, $config);
+
+    expect(array_column($recommended->links, 'networkKey'))->toBe(['x', 'facebook', 'linkedin', 'pinterest', 'whatsapp', 'bluesky']);
+
+    DB::table('social_site_preferences')
+        ->where('site_id', $this->site->getKey())
+        ->update(['share_network_keys' => json_encode(['linkedin']), 'share_networks_customised' => true]);
+    resolve(SocialsCacheEpoch::class)->increment((int) $this->site->getKey());
+
+    $customised = BuildShareSocialRenderDataAction::run($this->site, $context, $config);
+
+    expect(array_column($customised->links, 'networkKey'))->toBe(['linkedin']);
+});
+
+it('invalidates prepared and direct-share caches when output-affecting registry state changes', function (): void {
+    SocialProfile::query()->create([
+        'site_id' => $this->site->getKey(),
+        'network_key' => 'x',
+        'profile_value' => 'capell',
+        'sort_order' => 0,
+        'is_enabled' => true,
+    ]);
+
+    $context = new SharePageContextData('https://capell.test/guide', 'Guide', 'en');
+    $config = new SocialShareWidgetConfigData(
+        heading: 'Share',
+        labelStyle: null,
+        openInNewTab: null,
+        alignment: 'start',
+        networkKeys: ['x'],
+    );
+    $preparedBefore = PrepareSocialSiteRenderDataAction::run($this->site, 'en');
+    $shareBefore = BuildShareSocialRenderDataAction::run($this->site, $context, $config);
+    $registry = resolve(SocialNetworkRegistry::class);
+    $original = $registry->get('x');
+
+    expect($original)->toBeInstanceOf(SocialNetworkDefinitionData::class);
+
+    $normalizer = new NetworkProfileNormalizer(['social.example'], 'social.example', '/');
+    $registry->replace(new SocialNetworkDefinitionData(
+        key: 'x',
+        aliases: ['twitter'],
+        label: 'X alternative',
+        icon: 'alternative-x-mark',
+        capabilities: [SocialNetworkCapability::Follow, SocialNetworkCapability::Share],
+        normalizer: $normalizer,
+        validator: $normalizer,
+        shareUrlGenerator: new ShareUrlGenerator('https://social.example/share', ['url' => 'url']),
+    ));
+
+    $preparedAfter = PrepareSocialSiteRenderDataAction::run($this->site, 'en');
+    $shareAfter = BuildShareSocialRenderDataAction::run($this->site, $context, $config);
+
+    expect($preparedBefore->profiles(null)[0]->url)->toBe('https://x.com/capell')
+        ->and($preparedAfter->profiles(null)[0]->url)->toBe('https://social.example/capell')
+        ->and($preparedAfter->profiles(null)[0]->label)->toBe('X alternative')
+        ->and($preparedAfter->profiles(null)[0]->icon)->toBe('alternative-x-mark')
+        ->and($shareBefore->links[0]->url)->toStartWith('https://x.com/intent/post?')
+        ->and($shareAfter->links[0]->url)->toStartWith('https://social.example/share?');
 });
 
 it('saves valid profiles and preferences through the Livewire form', function (): void {
@@ -165,7 +259,8 @@ it('caches prepared social render data as a serialization-stable array, never a 
     // object. Storing a hydrated DTO is exactly what poisons the cache
     // (__PHP_Incomplete_Class after an autoload-map change).
     $epoch = resolve(SocialsCacheEpoch::class)->current($siteId);
-    $cacheKey = sprintf('capell-socials:prepared:%s:%d:%s:%d', 'v2-array', $siteId, 'en', $epoch);
+    $registryFingerprint = SocialNetworkRegistrySignature::for(resolve(Capell\Socials\Contracts\SocialNetworkRegistry::class), 'en');
+    $cacheKey = sprintf('capell-socials:prepared:%s:%d:%s:%d:%s', 'v2-array', $siteId, 'en', $epoch, $registryFingerprint);
     $rawCached = Cache::get($cacheKey);
 
     expect($rawCached)->toBeArray()

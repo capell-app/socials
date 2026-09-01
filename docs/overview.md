@@ -15,12 +15,11 @@ Open **Growth > Socials**. You need the install-generated `View:SocialsPage` per
 ## Configure a site
 
 1. Select the site before making changes.
-2. In **Profiles**, add registered networks or a **Custom link**, put them in public display order, and disable any link that should stay hidden.
-3. In **Defaults**, choose the follow and share label style, link target, and default share networks.
-4. Use **Preview** to check the current unsaved form state.
-5. Select **Save Socials**.
-
-Save before selecting a different site. Changing **Site** immediately loads that site's saved configuration and discards unsaved changes in the form.
+2. Under **Social profiles**, choose **Add social profile**, pick a network (or **Custom link**), and enter the handle or address for that network. Each finished profile collapses to a short summary of its network, destination, and whether it is shown.
+3. Reopen a profile to reorder it, hide it from visitors, or give it a custom public label. Custom links always need a label; registered networks only show the label field when you ask for one.
+4. Under **Appearance and preview**, set the follow label style and link target. Sharing uses a recommended set of the networks that support sharing; turn on **Choose the share networks myself** to pick exact networks, label style, and link target.
+5. The follow and share previews sit beside those controls and update from your unsaved changes.
+6. Select **Save Socials**. The action reports unsaved, saving, saved, and error states. Changing **Site** with unsaved changes asks whether to save, discard, or stay.
 
 Registered networks can appear once per site. A custom link needs a public label and an HTTP or HTTPS URL. Saving an invalid or duplicate profile does not partially replace the site's existing configuration.
 

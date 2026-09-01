@@ -6,6 +6,8 @@ namespace Capell\Socials\Models;
 
 use Capell\Core\Models\Site;
 use Capell\Socials\Enums\SocialLabelStyle;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Override;
@@ -15,11 +17,15 @@ use Override;
  * @property SocialLabelStyle $follow_label_style
  * @property bool $follow_open_in_new_tab
  * @property list<string> $share_network_keys
+ * @property bool $share_networks_customised
  * @property SocialLabelStyle $share_label_style
  * @property bool $share_open_in_new_tab
  */
 final class SocialSitePreferences extends Model
 {
+    /** @use HasFactory<Factory<static>> */
+    use HasFactory;
+
     protected $table = 'social_site_preferences';
 
     /** @var array<string, mixed> */
@@ -27,6 +33,7 @@ final class SocialSitePreferences extends Model
         'follow_label_style' => SocialLabelStyle::Icons->value,
         'follow_open_in_new_tab' => false,
         'share_network_keys' => '[]',
+        'share_networks_customised' => false,
         'share_label_style' => SocialLabelStyle::Icons->value,
         'share_open_in_new_tab' => false,
     ];
@@ -37,6 +44,7 @@ final class SocialSitePreferences extends Model
         'follow_label_style',
         'follow_open_in_new_tab',
         'share_network_keys',
+        'share_networks_customised',
         'share_label_style',
         'share_open_in_new_tab',
     ];
@@ -55,6 +63,7 @@ final class SocialSitePreferences extends Model
             'follow_label_style' => SocialLabelStyle::class,
             'follow_open_in_new_tab' => 'boolean',
             'share_network_keys' => 'array',
+            'share_networks_customised' => 'boolean',
             'share_label_style' => SocialLabelStyle::class,
             'share_open_in_new_tab' => 'boolean',
         ];

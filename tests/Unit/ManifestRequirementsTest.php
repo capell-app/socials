@@ -9,6 +9,7 @@ use Capell\Socials\Manifest\SocialProfileModelContribution;
 use Capell\Socials\Manifest\SocialsAdminPageContribution;
 use Capell\Socials\Manifest\SocialSitePreferencesModelContribution;
 use Capell\Socials\Manifest\SocialsWidgetContribution;
+use Capell\Socials\Providers\AdminServiceProvider;
 
 it('declares the shipped Socials package surfaces and Marketplace assets', function (): void {
     $packagePath = dirname(__DIR__, 2);
@@ -69,7 +70,7 @@ it('declares the shipped Socials package surfaces and Marketplace assets', funct
         ->and($manifest['permissions'])->toBe([SocialsPage::VIEW_PERMISSION])
         ->and($adminPageContribution['permission'] ?? null)->toBe(SocialsPage::VIEW_PERMISSION)
         ->and($adminSurface['permissions'] ?? null)->toBe([SocialsPage::VIEW_PERMISSION])
-        ->and($providers['admin'])->toContain('Capell\\Socials\\Providers\\AdminServiceProvider')
+        ->and($providers['admin'])->toContain(AdminServiceProvider::class)
         ->and($traceability['deferredContributions'])->toBe([])
         ->and($contributionClasses)->toContain(
             SocialProfileModelContribution::class,
@@ -105,6 +106,7 @@ it('declares the shipped Socials package surfaces and Marketplace assets', funct
     $requiredScreenshotPaths = collect($contractEntries)
         ->filter(static fn (mixed $entry): bool => is_array($entry) && ($entry['required'] ?? false) === true)
         ->map(static fn (array $entry): string => str_replace('packages/socials/', '', (string) ($entry['screenshotPath'] ?? '')))
+        ->values()
         ->all();
 
     expect($requiredScreenshotPaths)->toBe([
@@ -123,8 +125,33 @@ it('declares the shipped Socials package surfaces and Marketplace assets', funct
 
     expect($previewEntry)->toMatchArray([
         'interactions' => [
-            ['type' => 'click', 'selector' => 'button[role="tab"]:has-text("Preview")'],
             ['type' => 'waitFor', 'selector' => '.capell-socials'],
+        ],
+    ]);
+
+    $unsavedPreviewEntry = collect($contractEntries)
+        ->first(static fn (mixed $entry): bool => is_array($entry) && ($entry['id'] ?? null) === 'socials-unsaved-preview');
+    $saveErrorEntry = collect($contractEntries)
+        ->first(static fn (mixed $entry): bool => is_array($entry) && ($entry['id'] ?? null) === 'socials-save-error');
+
+    expect($unsavedPreviewEntry)->toMatchArray([
+        'colorSchemes' => ['light', 'dark'],
+        'required' => false,
+        'interactions' => [
+            ['type' => 'click', 'selector' => '.fi-fo-repeater-item:first-child .fi-fo-repeater-item-header'],
+            ['type' => 'click', 'selector' => '.fi-fo-repeater-item:first-child [data-capell-socials-profile-label-toggle]'],
+            ['type' => 'fill', 'selector' => '.fi-fo-repeater-item:first-child [data-capell-socials-profile-custom-label]', 'value' => 'Follow this site'],
+            ['type' => 'waitFor', 'selector' => '[data-capell-socials-admin-preview] a[aria-label="Follow this site"]'],
+            ['type' => 'waitFor', 'selector' => '[data-capell-socials-save-status="dirty"]'],
+        ],
+    ])->and($saveErrorEntry)->toMatchArray([
+        'colorSchemes' => ['light', 'dark'],
+        'required' => false,
+        'interactions' => [
+            ['type' => 'click', 'selector' => '.fi-fo-repeater-item:first-child .fi-fo-repeater-item-header'],
+            ['type' => 'fill', 'selector' => '.fi-fo-repeater-item:first-child [data-capell-socials-profile-value]', 'value' => 'https://facebook.com/capell'],
+            ['type' => 'click', 'selector' => '[data-capell-socials-save]'],
+            ['type' => 'waitFor', 'selector' => '[data-capell-socials-save-status="error"]'],
         ],
     ]);
 

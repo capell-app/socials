@@ -14,6 +14,7 @@ use Capell\Socials\Data\SocialShareWidgetConfigData;
 use Capell\Socials\Data\SocialSitePreferencesData;
 use Capell\Socials\Enums\SocialLabelStyle;
 use Capell\Socials\Models\SocialSitePreferences;
+use Capell\Socials\Support\SocialNetworkRegistrySignature;
 use Capell\Socials\Support\SocialsCacheEpoch;
 use Capell\Socials\Support\SocialsFrontendRuntimeManifestContributor;
 use Capell\Socials\Support\SocialSiteId;
@@ -44,19 +45,22 @@ final class BuildShareSocialRenderDataAction
 
         $siteId = SocialSiteId::from($site);
         $cacheKey = sprintf(
-            'capell-socials:share:%d:%s:%d:%s:%s:%s',
+            'capell-socials:share:%d:%s:%d:%s:%s:%s:%s',
             $siteId,
             $context->locale,
             $this->cacheEpoch->current($siteId),
             hash('xxh128', $context->canonicalUrl),
             hash('xxh128', $context->title),
             hash('xxh128', serialize($config)),
+            SocialNetworkRegistrySignature::for($this->networkRegistry, $context->locale),
         );
 
         return Cache::rememberForever($cacheKey, function () use ($site, $context, $config): SocialShareRenderData {
             $preferences = SocialSitePreferences::query()->firstWhere('site_id', $site->getKey())
                 ?? new SocialSitePreferences;
-            $networkKeys = $config->networkKeys ?? $preferences->share_network_keys;
+            $networkKeys = $config->networkKeys ?? (($preferences->share_networks_customised ?? false)
+                ? $preferences->share_network_keys
+                : SocialSitePreferencesData::recommendedShareNetworkKeys($this->networkRegistry));
             $links = BuildShareLinksAction::run($context, $networkKeys, $this->networkRegistry)->links;
 
             return new SocialShareRenderData(

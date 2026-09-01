@@ -35,13 +35,14 @@ Screenshot contract: `docs/screenshots.json`.
 
 ![Site-scoped Socials management](docs/screenshots/socials-site-profile-management.png)
 
-![Follow/share defaults and unsaved preview](docs/screenshots/socials-defaults-and-preview.png)
+![Follow and share appearance beside the unsaved preview](docs/screenshots/socials-defaults-and-preview.png)
 
-- Site-scoped Socials management (admin, required).
-- Follow/share defaults and unsaved preview (admin, required).
-- Accessible follow widget output (frontend, required).
-- Canonical share widget output (frontend, required).
-- Developer registry extensibility (shared, required).
+- Site-scoped Socials management (admin, required evidence).
+- Follow and share appearance beside the unsaved preview (admin, required evidence).
+- Accessible follow widget output (frontend, required evidence).
+- Canonical share widget output (frontend, required evidence).
+- Developer registry extensibility (shared, required evidence).
+- Site-scoped Socials management with admin sidebar menu open (admin, supplementary evidence).
 
 ## Works With
 
@@ -50,14 +51,14 @@ No optional companion integrations are currently declared with executable eviden
 ## Technical Shape
 
 - Service providers: `Capell\Socials\Providers\SocialsServiceProvider`, `Capell\Socials\Providers\AdminServiceProvider`.
-- Migrations: `packages/socials/database/migrations/2026_07_16_000001_create_social_profiles_table.php`, `packages/socials/database/migrations/2026_07_16_000002_create_social_site_preferences_table.php`.
+- Migrations: `packages/socials/database/migrations/2026_07_16_000001_create_social_profiles_table.php`, `packages/socials/database/migrations/2026_07_16_000002_create_social_site_preferences_table.php`, `packages/socials/database/migrations/2026_08_31_000001_add_share_networks_customised_to_social_site_preferences.php`.
 - Models: `SocialProfile`, `SocialSitePreferences`.
 - Filament classes: `SocialsBuilderBlock`, `SocialsPage`.
 - Extension contracts: `SocialNetworkRegistry`, `SocialProfileNormalizer`, `SocialProfileValidator`, `SocialProfilesResolver`, `SocialShareUrlGenerator`.
-- Actions: `BuildFollowSocialRenderDataAction`, `BuildShareLinksAction`, `BuildShareSocialRenderDataAction`, `ImportLegacySocialProfilesAction`, `OverrideSocialNetworkDefinitionAction`, `RegisterBuiltInSocialNetworksAction`, `ResolveSiteSocialProfilesAction`, `SaveSocialSiteConfigurationAction`.
-- Data objects: `LegacySocialImportResultData`, `NormalizedSocialProfileData`, `ShareLinkData`, `ShareLinksData`, `SharePageContextData`, `SocialCustomLinkConfigurationData`, `SocialFollowRenderData`, `SocialFollowWidgetConfigData`, `SocialNetworkDefinitionData`, `SocialProfileConfigurationData`, `SocialProfileData`, `SocialProfilesData`, `and 3 more`.
+- Actions: `BuildFollowSocialRenderDataAction`, `BuildShareLinksAction`, `BuildShareSocialRenderDataAction`, `ImportLegacySocialProfilesAction`, `OverrideSocialNetworkDefinitionAction`, `PrepareSocialSiteRenderDataAction`, `RegisterBuiltInSocialNetworksAction`, `ResolveSiteSocialProfilesAction`, `SaveSocialSiteConfigurationAction`, `SeedSocialsScreenshotFixtureAction`.
+- Data objects: `LegacySocialImportResultData`, `NormalizedSocialProfileData`, `PreparedSocialProfileData`, `PreparedSocialSiteData`, `ShareLinkData`, `ShareLinksData`, `SharePageContextData`, `SocialCustomLinkConfigurationData`, `SocialFollowRenderData`, `SocialFollowWidgetConfigData`, `SocialNetworkDefinitionData`, `SocialProfileConfigurationData`, `and 5 more`.
 - Command signatures: `capell:socials-install`.
-- Console command classes: `InstallSocialsCommand`.
+- Console command classes: `InstallSocialsCommand`, `SeedSocialsScreenshotFixtureCommand`.
 - Manifest contributions: `admin-page: Capell\Socials\Manifest\SocialsAdminPageContribution`, `frontend-component: Capell\Socials\Manifest\SocialsWidgetContribution`, `model: Capell\Socials\Manifest\SocialProfileModelContribution`, `model: Capell\Socials\Manifest\SocialSitePreferencesModelContribution`.
 - Health checks: `Capell\Socials\Health\SocialsHealthCheck`.
 - Blade views: `packages/socials/resources/views/blocks/icon.blade.php`, `packages/socials/resources/views/blocks/socials.blade.php`, `packages/socials/resources/views/filament/pages/socials.blade.php`, `packages/socials/resources/views/filament/partials/follow-preview.blade.php`, `packages/socials/resources/views/filament/partials/share-preview.blade.php`.
@@ -68,7 +69,7 @@ No optional companion integrations are currently declared with executable eviden
 - Required tables: `social_profiles`, `social_site_preferences`.
 - Models: `SocialProfile`, `SocialSitePreferences`.
 - Core record references in migrations: `sites via site_id`.
-- Migration files: `2026_07_16_000001_create_social_profiles_table.php`, `2026_07_16_000002_create_social_site_preferences_table.php`.
+- Migration files: `2026_07_16_000001_create_social_profiles_table.php`, `2026_07_16_000002_create_social_site_preferences_table.php`, `2026_08_31_000001_add_share_networks_customised_to_social_site_preferences.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
 - Deletion/retention behaviour: migrations declare cascade-on-delete relationships; no timed pruning or retention schedule is declared in `capell.json`.
 
@@ -105,7 +106,7 @@ No optional companion integrations are currently declared with executable eviden
 
 1. Install the package: `composer require capell-app/socials`.
 2. Run the required setup: `php artisan capell:socials-install`.
-3. Open the Site-scoped Socials management and confirm the admin workflow loads.
+3. Open the package admin surface at `/socials` and confirm Socials is available.
 
 ## Next Steps
 
