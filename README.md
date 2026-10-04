@@ -10,8 +10,6 @@ Socials adds site-scoped registered and custom social profiles, shared follow an
 
 Admins manage profiles and previews on the Socials page, then editors place follow or share links on selected pages. Visitors receive accessible links without social SDKs or tracking scripts.
 
-Evidence: [`src/Filament/Pages/SocialsPage.php`](src/Filament/Pages/SocialsPage.php), [`src/Blocks/SocialsBlockDefinitionProvider.php`](src/Blocks/SocialsBlockDefinitionProvider.php), [`capell.json`](capell.json), [`src/Blocks/SocialsBlockRenderer.php`](src/Blocks/SocialsBlockRenderer.php), [`resources/views/blocks/socials.blade.php`](resources/views/blocks/socials.blade.php), [`tests/Unit/BuildShareLinksActionTest.php`](tests/Unit/BuildShareLinksActionTest.php).
-
 Status details:
 
 - Status: Available
@@ -26,8 +24,6 @@ Status details:
 **For developers:** The network registry, public resolver contract, and typed render data keep profile validation separate from admin forms and public rendering.
 
 **For teams:** Teams can approve social profiles once per site, reuse them in follow blocks, and offer canonical page sharing without embedding third-party scripts.
-
-Evidence: [`src/Contracts/SocialNetworkRegistry.php`](src/Contracts/SocialNetworkRegistry.php), [`src/Contracts/SocialProfilesResolver.php`](src/Contracts/SocialProfilesResolver.php), [`src/Actions/ResolveSiteSocialProfilesAction.php`](src/Actions/ResolveSiteSocialProfilesAction.php), [`tests/Unit/SocialNetworkRegistryTest.php`](tests/Unit/SocialNetworkRegistryTest.php), [`src/Actions/SaveSocialSiteConfigurationAction.php`](src/Actions/SaveSocialSiteConfigurationAction.php), [`src/Actions/BuildFollowSocialRenderDataAction.php`](src/Actions/BuildFollowSocialRenderDataAction.php), [`src/Actions/BuildShareSocialRenderDataAction.php`](src/Actions/BuildShareSocialRenderDataAction.php), [`tests/Unit/ResolveSiteSocialProfilesActionTest.php`](tests/Unit/ResolveSiteSocialProfilesActionTest.php).
 
 ## Screens And Workflow
 
@@ -191,12 +187,13 @@ No optional companion integrations are currently declared with executable eviden
 
 1. Install the package: `composer require capell-app/socials`.
 2. Run the package setup: `php artisan capell:socials-install`.
-3. Open the package admin surface at `/socials` and confirm Socials is available.
+3. Open the package admin surface at `/admin/socials` and confirm Socials is available.
 
 ## Next Steps
 
 - [Package docs](docs/README.md)
 - [Overview](docs/overview.md)
+- [Worked extension examples](docs/extension-contracts.md)
 - [Troubleshooting](#troubleshooting)
 - [Screenshot contract](docs/screenshots.json)
 - [Marketplace assets](docs/assets/marketplace/)
@@ -204,6 +201,5 @@ No optional companion integrations are currently declared with executable eviden
 - [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
 - [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
 - Related packages: [Block Library](../block-library/README.md).
-- Focused tests: `vendor/bin/pest packages/socials/tests --configuration=phpunit.xml`.
 
 <!-- prettier-ignore-end -->
