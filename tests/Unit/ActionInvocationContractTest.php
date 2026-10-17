@@ -2,50 +2,72 @@
 
 declare(strict_types=1);
 
-it('uses container-backed Laravel Action entrypoints across Socials orchestration', function (): void {
-    $packagePath = dirname(__DIR__, 2);
-    $follow = file_get_contents($packagePath . '/src/Actions/BuildFollowSocialRenderDataAction.php');
-    $share = file_get_contents($packagePath . '/src/Actions/BuildShareSocialRenderDataAction.php');
-    $renderer = file_get_contents($packagePath . '/src/Blocks/SocialsBlockRenderer.php');
-    $command = file_get_contents($packagePath . '/src/Console/Commands/InstallSocialsCommand.php');
+use Capell\Socials\Actions\BuildFollowSocialRenderDataAction;
+use Capell\Socials\Actions\BuildShareSocialRenderDataAction;
+use Capell\Socials\Data\SharePageContextData;
+use Capell\Socials\Data\SocialFollowWidgetConfigData;
+use Capell\Socials\Data\SocialShareWidgetConfigData;
+use Capell\Socials\Data\SocialSitePreferencesData;
+use Capell\Socials\Enums\SocialLabelStyle;
+use Capell\Socials\Support\BuiltIns\BuiltInSocialNetworkDefinitions;
+use Capell\Socials\Support\SocialNetworkRegistry;
+use Capell\Socials\Support\SocialsCacheEpoch;
+use Illuminate\Cache\ArrayStore;
+use Illuminate\Cache\Repository;
 
-    expect($follow)->toBeString()
-        ->toContain('use AsFake;')
-        ->toContain('use AsObject;')
-        ->toContain('ResolveSiteSocialProfilesAction::run(')
-        ->not->toContain('private readonly ResolveSiteSocialProfilesAction')
-        ->and($share)->toBeString()
-        ->toContain('use AsFake;')
-        ->toContain('use AsObject;')
-        ->toContain('BuildShareLinksAction::run(')
-        ->not->toContain('new BuildShareLinksAction')
-        ->and($renderer)->toBeString()
-        ->toContain('BuildFollowSocialRenderDataAction::run(')
-        ->toContain('BuildShareSocialRenderDataAction::run(')
-        ->not->toContain('private readonly BuildFollowSocialRenderDataAction')
-        ->not->toContain('private readonly BuildShareSocialRenderDataAction')
-        ->and($command)->toBeString()
-        ->toContain('ImportLegacySocialProfilesAction::run(');
+require_once __DIR__ . '/../Support/RenderSocialsView.php';
+
+function previewSocialNetworkRegistry(): SocialNetworkRegistry
+{
+    $registry = new SocialNetworkRegistry;
+
+    foreach (BuiltInSocialNetworkDefinitions::all() as $definition) {
+        $registry->register($definition);
+    }
+
+    return $registry;
+}
+
+it('builds and renders a follow preview from editor configuration', function (): void {
+    $registry = previewSocialNetworkRegistry();
+    $action = new BuildFollowSocialRenderDataAction(new SocialsCacheEpoch(new Repository(new ArrayStore)));
+    $renderData = $action->preview(
+        SocialFollowWidgetConfigData::fromState([
+            'heading' => 'Follow the community', 'label_style' => 'icons_and_labels',
+            'custom_links' => [['label' => 'Community', 'url' => 'https://example.test/community']],
+        ]),
+        new SocialSitePreferencesData($registry, followLabelStyle: SocialLabelStyle::IconsAndLabels),
+        [],
+    );
+    $html = renderSocialsView('capell-socials::filament.partials.follow-preview', $renderData);
+
+    expect($renderData->shouldRender())->toBeTrue()
+        ->and($html)->toContain('Follow the community', 'Community', 'href="https://example.test/community"');
 });
 
-it('passes typed preview render data into Filament views instead of assuming a Livewire view variable', function (): void {
-    $packagePath = dirname(__DIR__, 2);
-    $page = file_get_contents($packagePath . '/src/Filament/Pages/SocialsPage.php');
-    $pageView = file_get_contents($packagePath . '/resources/views/filament/pages/socials.blade.php');
-    $followPreview = file_get_contents($packagePath . '/resources/views/filament/partials/follow-preview.blade.php');
-    $sharePreview = file_get_contents($packagePath . '/resources/views/filament/partials/share-preview.blade.php');
+it('builds and renders share preview URLs from the configured page', function (): void {
+    $registry = previewSocialNetworkRegistry();
+    $action = new BuildShareSocialRenderDataAction($registry, new SocialsCacheEpoch(new Repository(new ArrayStore)));
+    $renderData = $action->preview(
+        new SharePageContextData('https://example.test/article', 'An article', 'en'),
+        SocialShareWidgetConfigData::fromState(['heading' => 'Share this article', 'share_network_keys' => ['x']], $registry),
+        new SocialSitePreferencesData($registry),
+    );
+    $html = renderSocialsView('capell-socials::filament.partials.share-preview', $renderData);
 
-    expect($page)->toBeString()
-        ->toContain("->viewData(fn (): array => ['renderData' => \$this->getFollowPreviewProperty()])")
-        ->toContain("->viewData(fn (): array => ['renderData' => \$this->getSharePreviewProperty()])")
-        ->and($followPreview)->toBeString()
-        ->toContain('@if ($renderData->shouldRender())')
-        ->not->toContain('$livewire')
-        ->and($sharePreview)->toBeString()
-        ->toContain('@if ($renderData?->shouldRender())')
-        ->not->toContain('$livewire')
-        ->and($pageView)->toBeString()
-        ->toContain('[data-capell-socials-admin-preview] .capell-socials a')
-        ->and($followPreview)->toContain('data-capell-socials-admin-preview')
-        ->and($sharePreview)->toContain('data-capell-socials-admin-preview');
+    expect($renderData->shouldRender())->toBeTrue()
+        ->and($html)->toContain('Share this article', 'https://x.com/intent/post?', 'https%3A%2F%2Fexample.test%2Farticle');
+});
+
+it('renders useful empty previews when follow links or page context are absent', function (): void {
+    $registry = previewSocialNetworkRegistry();
+    $action = new BuildFollowSocialRenderDataAction(new SocialsCacheEpoch(new Repository(new ArrayStore)));
+    $follow = $action->preview(SocialFollowWidgetConfigData::fromState([]), new SocialSitePreferencesData($registry), []);
+
+    expect(renderSocialsView('capell-socials::filament.partials.follow-preview', $follow))
+        ->toContain(__('capell-socials::socials.admin.preview_empty'))
+        ->not->toContain('<a ')
+        ->and(renderSocialsView('capell-socials::filament.partials.share-preview', null))
+        ->toContain(__('capell-socials::socials.admin.share_preview_unavailable'))
+        ->not->toContain('<a ');
 });

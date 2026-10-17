@@ -22,6 +22,7 @@ use Capell\Socials\Observers\InvalidateSocialsCacheObserver;
 use Capell\Socials\Support\SocialNetworkRegistry;
 use Capell\Socials\Support\SocialsCacheEpoch;
 use Capell\Socials\Support\SocialsFrontendRuntimeManifestContributor;
+use Override;
 use Spatie\LaravelPackageTools\Package;
 
 final class SocialsServiceProvider extends AbstractPackageServiceProvider
@@ -30,6 +31,7 @@ final class SocialsServiceProvider extends AbstractPackageServiceProvider
 
     public static string $packageName = 'capell-app/socials';
 
+    #[Override]
     public function configurePackage(Package $package): void
     {
         $package
@@ -48,6 +50,7 @@ final class SocialsServiceProvider extends AbstractPackageServiceProvider
             ]);
     }
 
+    #[Override]
     public function packageRegistered(): void
     {
         // Block discovery reads labels before package providers finish booting.
@@ -57,6 +60,7 @@ final class SocialsServiceProvider extends AbstractPackageServiceProvider
         $this->app->singleton(SocialsCacheEpoch::class);
         $this->app->alias(SocialNetworkRegistry::class, SocialNetworkRegistryContract::class);
         $this->app->singleton(SocialProfilesResolver::class, ResolveSiteSocialProfilesAction::class);
+        // Block and frontend registries consume these tags once during bootstrap.
         $this->app->tag([SocialsBlockDefinitionProvider::class], BlockDefinitionProvider::TAG);
         $this->app->tag([SocialsFrontendRuntimeManifestContributor::class], FrontendRuntimeManifestContributor::TAG);
 
@@ -71,7 +75,8 @@ final class SocialsServiceProvider extends AbstractPackageServiceProvider
         });
     }
 
-    public function packageBooted(): void
+    #[Override]
+    protected function bootInstalledRuntime(): void
     {
         SocialProfile::observe(InvalidateSocialsCacheObserver::class);
         SocialSitePreferences::observe(InvalidateSocialsCacheObserver::class);

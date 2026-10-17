@@ -11,6 +11,8 @@ use Capell\Socials\Manifest\SocialSitePreferencesModelContribution;
 use Capell\Socials\Manifest\SocialsWidgetContribution;
 use Capell\Socials\Providers\AdminServiceProvider;
 
+require_once dirname(__DIR__, 4) . '/tests/Support/ScreenshotRouteAssertions.php';
+
 it('declares the shipped Socials package surfaces and Marketplace assets', function (): void {
     $packagePath = dirname(__DIR__, 2);
     $manifest = socialsJsonObject($packagePath . '/capell.json');
@@ -160,13 +162,15 @@ it('declares the shipped Socials package surfaces and Marketplace assets', funct
         expect(is_file($packagePath . '/' . $path))->toBeTrue();
     }
 
-    $fixtureRoutes = file_get_contents(dirname($packagePath, 2) . '/workbench/routes/screenshot-fixtures.php');
+    expect(is_file($packagePath . '/.github/workflows/forward-pr-to-monorepo.yml'))->toBeTrue();
+    // A fresh router prevents preloaded fixture URLs from hiding a removed route.
+    foreach (['follow', 'share', 'registry'] as $surface) {
+        assertScreenshotFixtureRouteMatches(
+            '/screenshot-fixtures/socials/' . $surface,
+            dirname($packagePath, 2) . '/workbench/routes/screenshot-fixtures.php',
+        );
+    }
 
-    expect(is_file($packagePath . '/.github/workflows/forward-pr-to-monorepo.yml'))->toBeTrue()
-        ->and($fixtureRoutes)->toBeString()
-        ->toContain('/screenshot-fixtures/socials/follow')
-        ->toContain('/screenshot-fixtures/socials/share')
-        ->toContain('/screenshot-fixtures/socials/registry');
 });
 
 /** @return array<string, mixed> */
