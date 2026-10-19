@@ -222,3 +222,22 @@ it('rejects a different physical checkout and production even when fixture mode 
         }
     }
 });
+
+it('rejects an invalid explicit site selector before fixture writes', function (): void {
+
+    $previous = getenv('CAPELL_SCREENSHOT_SITE_ID');
+    $fixture = getenv('CAPELL_SCREENSHOT_FIXTURE');
+    $path = getenv('CAPELL_SCREENSHOT_APP_PATH');
+    putenv('CAPELL_SCREENSHOT_SITE_ID=invalid');
+    putenv('CAPELL_SCREENSHOT_FIXTURE=record-state');
+    putenv('CAPELL_SCREENSHOT_APP_PATH=' . base_path());
+    $before = SocialProfile::query()->count();
+    try {
+        expect(fn (): SocialSitePreferences => SeedSocialsScreenshotFixtureAction::run())->toThrow(RuntimeException::class, 'valid selected site')
+            ->and(SocialProfile::query()->count())->toBe($before);
+    } finally {
+        putenv($previous === false ? 'CAPELL_SCREENSHOT_SITE_ID' : 'CAPELL_SCREENSHOT_SITE_ID=' . $previous);
+        putenv($fixture === false ? 'CAPELL_SCREENSHOT_FIXTURE' : 'CAPELL_SCREENSHOT_FIXTURE=' . $fixture);
+        putenv($path === false ? 'CAPELL_SCREENSHOT_APP_PATH' : 'CAPELL_SCREENSHOT_APP_PATH=' . $path);
+    }
+});

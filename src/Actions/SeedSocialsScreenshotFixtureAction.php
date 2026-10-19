@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Capell\Socials\Actions;
 
 use Capell\Core\Models\Site;
-use Capell\Core\Support\Permissions\SiteAccess;
+use Capell\ScreenshotFixtures\FixtureState;
 use Capell\Socials\Contracts\SocialNetworkRegistry;
 use Capell\Socials\Data\SocialProfileConfigurationData;
 use Capell\Socials\Data\SocialSitePreferencesData;
@@ -27,6 +27,9 @@ final class SeedSocialsScreenshotFixtureAction
     {
         self::assertDisposableScreenshotEnvironment();
 
+        require_once dirname(__DIR__, 4) . '/scripts/screenshots/FixtureState.php';
+        FixtureState::boot();
+
         $actorModel = config('auth.providers.users.model');
         throw_unless(is_string($actorModel) && is_subclass_of($actorModel, Model::class), RuntimeException::class, 'Socials screenshots require a configured capture actor.');
         $email = getenv('CAPELL_SCREENSHOT_ADMIN_EMAIL') ?: (getenv('CAPELL_ADMIN_EMAIL') ?: 'admin@example.com');
@@ -38,13 +41,7 @@ final class SeedSocialsScreenshotFixtureAction
             'The configured Socials screenshot actor cannot access the admin panel.',
         );
 
-        $site = SiteAccess::forActor($actor)->scope(Site::query(), 'id')->orderBy('name')->first();
-
-        throw_unless(
-            $site instanceof Site,
-            RuntimeException::class,
-            'Socials screenshot fixtures require a disposable site.',
-        );
+        $site = FixtureState::selectedSite();
 
         return DB::transaction(static function () use ($site): SocialSitePreferences {
             $site = Site::query()->whereKey($site->getKey())->lockForUpdate()->firstOrFail();
@@ -113,7 +110,9 @@ final class SeedSocialsScreenshotFixtureAction
                 && in_array(getenv('CAPELL_SCREENSHOT_FIXTURE'), ['1', 'true', 'record-state'], true)
                 && is_string($basePath)
                 && is_string($appPath)
-                && $basePath === $appPath,
+                && $basePath === $appPath
+                && ($basePath === realpath(dirname(__DIR__, 4) . '/vendor/orchestra/testbench-core/laravel')
+                    || str_starts_with($basePath, dirname(__DIR__, 4) . '/tmp/testbench-skeletons/')),
             RuntimeException::class,
             'Socials screenshot fixtures require the explicit disposable local screenshot environment.',
         );
