@@ -88,6 +88,7 @@ No optional companion integrations are currently declared with executable eviden
 - `PrepareSocialSiteRenderDataAction`
 - `RegisterBuiltInSocialNetworksAction`
 - `ResolveSiteSocialProfilesAction`
+- `ResolveSocialProfileChoicesAction`
 - `SaveSocialSiteConfigurationAction`
 - `SeedSocialsScreenshotFixtureAction`
 
@@ -104,6 +105,7 @@ No optional companion integrations are currently declared with executable eviden
 - `SocialFollowRenderData`
 - `SocialFollowWidgetConfigData`
 - `SocialNetworkDefinitionData`
+- `SocialProfileChoicesData`
 - `SocialProfileConfigurationData`
 - `SocialProfileData`
 - `SocialProfilesData`
@@ -188,6 +190,10 @@ No optional companion integrations are currently declared with executable eviden
 1. Install the package: `composer require capell-app/socials`.
 2. Run the package setup: `php artisan capell:socials-install`.
 3. Open the package admin surface at `/admin/socials` and confirm Socials is available.
+
+## Upgrading
+
+No manual steps between minor versions.
 
 ## Next Steps
 

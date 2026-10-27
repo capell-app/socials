@@ -27,7 +27,7 @@ Registered networks can appear once per site. A custom link needs a public label
 
 Add the **Socials** block through the page's block or layout editor, then choose **Follow** or **Share** mode.
 
-- **Follow** uses the site's enabled profiles. You can restrict the block to particular site profile IDs and add up to ten links that apply only to that block.
+- **Follow** uses **All enabled site profiles** by default. Select **Choose profiles** to pick named profiles and destinations belonging to the current site. An empty selection intentionally displays no site profiles; up to ten custom links can still appear. Removed or disabled selections show a warning and must be replaced or cleared before saving.
 - **Share** uses the current page's canonical URL and title. Choose specific networks in the block or inherit the site's defaults.
 - Both modes can inherit the site's label and link-target defaults or override them for that block. You can also set a heading and alignment.
 

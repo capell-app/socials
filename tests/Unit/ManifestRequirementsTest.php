@@ -105,8 +105,15 @@ it('declares the shipped Socials package surfaces and Marketplace assets', funct
         throw new RuntimeException('Socials screenshot contract entries must be an array.');
     }
 
-    $requiredScreenshotPaths = collect($contractEntries)
-        ->filter(static fn (mixed $entry): bool => is_array($entry) && ($entry['required'] ?? false) === true)
+    $requiredEntries = collect($contractEntries)
+        ->filter(static fn (mixed $entry): bool => is_array($entry) && ($entry['required'] ?? false) === true);
+    $galleryPaths = $requiredEntries
+        // Match gallery-quality.cjs: illustrative captures are documentation only.
+        ->reject(static fn (array $entry): bool => is_string($entry['fixtureKind'] ?? null) && str_starts_with($entry['fixtureKind'], 'illustrative-'))
+        ->map(static fn (array $entry): string => str_replace('packages/socials/', '', (string) ($entry['screenshotPath'] ?? '')))
+        ->values()
+        ->all();
+    $requiredScreenshotPaths = $requiredEntries
         ->map(static fn (array $entry): string => str_replace('packages/socials/', '', (string) ($entry['screenshotPath'] ?? '')))
         ->values()
         ->all();
@@ -119,7 +126,7 @@ it('declares the shipped Socials package surfaces and Marketplace assets', funct
         'docs/screenshots/socials-registry-extension.png',
     ])->and(array_column($screenshots, 'path'))->toBe([
         'docs/assets/marketplace/extension-card.svg',
-        ...$requiredScreenshotPaths,
+        ...$galleryPaths,
     ]);
 
     $previewEntry = collect($contractEntries)

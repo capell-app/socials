@@ -35,7 +35,7 @@ final class SocialsHealthCheck implements ChecksExtensionHealth
 
         return collect([
             new DoctorCheckResultData(
-                label: 'Socials storage tables',
+                label: 'Socials: database tables present',
                 passed: $missingTables === [],
                 message: $missingTables === []
                     ? 'The Socials storage tables are present.'
@@ -43,9 +43,10 @@ final class SocialsHealthCheck implements ChecksExtensionHealth
                 remediation: $missingTables === []
                     ? null
                     : 'Run capell:socials-install or the Capell migrations.',
+                id: 'legacy.socials.storage.tables',
             ),
             new DoctorCheckResultData(
-                label: 'Socials frontend widget',
+                label: 'Socials: public widget available',
                 passed: $widgetAvailable,
                 message: $widgetAvailable
                     ? 'The Socials block definition and renderer are available.'
@@ -53,6 +54,7 @@ final class SocialsHealthCheck implements ChecksExtensionHealth
                 remediation: $widgetAvailable
                     ? null
                     : 'Ensure the Socials package autoloader and service provider are registered.',
+                id: 'legacy.socials.frontend.widget',
             ),
             self::orphanedProfilesResult($missingTables === []),
         ]);
@@ -89,7 +91,7 @@ final class SocialsHealthCheck implements ChecksExtensionHealth
         }
 
         return new DoctorCheckResultData(
-            label: 'Socials profile registry coverage',
+            label: 'Socials: social profiles registered',
             passed: $orphanedNetworkKeys === [],
             message: $orphanedNetworkKeys === []
                 ? 'Every saved social profile has a registered network definition.'
@@ -97,6 +99,7 @@ final class SocialsHealthCheck implements ChecksExtensionHealth
             remediation: $orphanedNetworkKeys === []
                 ? null
                 : 'Re-register the missing network definitions or reassign the affected profiles in the Socials admin page.',
+            id: 'legacy.socials.profile.registry.coverage',
         );
     }
 }

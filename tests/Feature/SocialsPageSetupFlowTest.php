@@ -2,12 +2,19 @@
 
 declare(strict_types=1);
 
+use Capell\BlockLibrary\Data\BlockDefinitionData;
 use Capell\Core\Models\Language;
+use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
+use Capell\Frontend\Support\State\FrontendState;
+use Capell\Socials\Blocks\SocialsBlockDefinitionProvider;
+use Capell\Socials\Blocks\SocialsBlockRenderer;
+use Capell\Socials\Data\SocialShareRenderData;
 use Capell\Socials\Filament\Pages\SocialsPage;
 use Capell\Socials\Models\SocialProfile;
 use Capell\Socials\Models\SocialSitePreferences;
 use Capell\Tests\Fixtures\Models\User;
+use Dom\HTMLDocument;
 use Filament\Facades\Filament;
 use Filament\Panel;
 use Illuminate\Contracts\Translation\Translator;
@@ -531,3 +538,67 @@ function socialsSetupFlowScopedUser(SupportCollection $assignedSiteIds): User
 
     return $user;
 }
+
+it('distinguishes an intentional empty sharing selection from missing homepage context and preserves it on reload', function (): void {
+    $site = Site::query()->findOrFail($this->siteAId);
+    $language = $site->language;
+    throw_unless($language instanceof Language, RuntimeException::class, 'Expected site language.');
+
+    Page::factory()->home()->published()->meta('canonical_url', 'https://example.test/')
+        ->withTranslations($language, ['title' => 'Sharing fixture'])
+        ->create(['site_id' => $site->getKey()]);
+
+    $component = Livewire::test(SocialsPage::class)
+        ->set('data.share_networks_customised', true)
+        ->set('data.share_network_keys', []);
+
+    $dom = HTMLDocument::createFromString($component->html(), LIBXML_NOERROR, 'UTF-8');
+    expect($dom->querySelectorAll('[data-capell-socials-share-empty]')->length)->toBe(1)
+        ->and($dom->querySelectorAll('[data-capell-socials-share-setup]')->length)->toBe(0)
+        ->and($dom->querySelectorAll('[data-capell-socials-admin-preview] a')->length)->toBe(0);
+
+    $component->set('data.share_network_keys', ['x']);
+    $dom = HTMLDocument::createFromString($component->html(), LIBXML_NOERROR, 'UTF-8');
+    $links = $dom->querySelectorAll('[data-capell-socials-admin-preview] a');
+    expect($links->length)->toBe(1)
+        ->and($dom->querySelector('[data-capell-socials-admin-preview] a')?->getAttribute('href'))->toBe('https://x.com/intent/post?text=Sharing%20fixture&url=https%3A%2F%2Fexample.test%2F');
+
+    $component->set('data.share_network_keys', [])->call('save')->assertHasNoErrors();
+    $reloaded = Livewire::test(SocialsPage::class)
+        ->assertSet('data.share_networks_customised', true)
+        ->assertSet('data.share_network_keys', []);
+    $dom = HTMLDocument::createFromString($reloaded->html(), LIBXML_NOERROR, 'UTF-8');
+    expect($dom->querySelectorAll('[data-capell-socials-share-empty]')->length)->toBe(1)
+        ->and(SocialSitePreferences::query()->where('site_id', $site->getKey())->sole()->share_network_keys)->toBe([]);
+
+    /** @var SocialsPage $page */
+    $page = $reloaded->instance();
+    $renderData = $page->getSharePreviewProperty();
+    throw_unless($renderData instanceof SocialShareRenderData, RuntimeException::class, 'Expected resolved share context.');
+    $homepage = Page::getSiteHomePage($site, $language);
+    throw_unless($homepage instanceof Page, RuntimeException::class, 'Expected the published homepage.');
+    resolve(FrontendState::class)->reset()->withSite($site)->withLanguage($language)->withPage($homepage);
+    $definition = null;
+    foreach ((new SocialsBlockDefinitionProvider)->definitions() as $candidate) {
+        $definition = $candidate;
+
+        break;
+    }
+    throw_unless($definition instanceof BlockDefinitionData, RuntimeException::class, 'Expected Socials block definition.');
+    auth()->logout();
+    $html = resolve(SocialsBlockRenderer::class)->render($definition, ['mode' => 'share'])->toHtml();
+    $public = HTMLDocument::createFromString('<!DOCTYPE html><html><body>' . $html . '</body></html>', LIBXML_NOERROR, 'UTF-8');
+    expect($public->querySelectorAll('section, ul, a, [data-capell-socials-admin-preview]')->length)->toBe(0);
+    test()->actingAs(User::factory()->create());
+    expect(resolve(SocialsBlockRenderer::class)->render($definition, ['mode' => 'share'])->toHtml())->toBe($html);
+});
+
+it('shows the setup prerequisite when a homepage is missing even with an empty sharing selection', function (): void {
+    $component = Livewire::test(SocialsPage::class)
+        ->set('data.share_networks_customised', true)
+        ->set('data.share_network_keys', []);
+
+    $dom = HTMLDocument::createFromString($component->html(), LIBXML_NOERROR, 'UTF-8');
+    expect($dom->querySelectorAll('[data-capell-socials-share-setup]')->length)->toBe(1)
+        ->and($dom->querySelectorAll('[data-capell-socials-share-empty]')->length)->toBe(0);
+});
