@@ -50,6 +50,7 @@ beforeEach(function (): void {
     // Core resolves table names through config(), so the standalone container needs a repository.
     $container->instance('config', new ConfigRepository(['capell' => ['database' => ['table_prefix' => '', 'table_aliases' => []]]]));
     $container->instance('translator', new Translator($loader, 'en'));
+    $container->instance('config', new ConfigRepository([]));
     $container->instance('db', $capsule->getDatabaseManager());
     $container->instance('db.schema', $capsule->schema());
     // Site scopes resolve Core's database platform even in a standalone app.

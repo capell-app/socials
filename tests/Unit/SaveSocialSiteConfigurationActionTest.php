@@ -16,6 +16,7 @@ use Capell\Socials\Support\SocialNetworkRegistry;
 use Capell\Socials\Support\SocialsCacheEpoch;
 use Illuminate\Cache\ArrayStore;
 use Illuminate\Cache\Repository;
+use Illuminate\Config\Repository as ConfigRepository;
 use Illuminate\Container\Container;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\DatabaseTransactionsManager;
@@ -49,6 +50,7 @@ beforeEach(function (): void {
     $loader->addMessages('en', 'capell-socials::socials', require dirname(__DIR__, 2) . '/resources/lang/en/socials.php');
 
     $container->instance('translator', new Translator($loader, 'en'));
+    $container->instance('config', new ConfigRepository([]));
     $container->instance('db', $capsule->getDatabaseManager());
     $container->instance('db.schema', $capsule->schema());
 

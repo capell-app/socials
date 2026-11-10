@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Socials\Models;
 
+use Capell\Core\Concerns\HasCapellTable;
 use Capell\Core\Models\Site;
 use Capell\Socials\Enums\SocialLabelStyle;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -24,6 +25,8 @@ use Override;
  */
 final class SocialSitePreferences extends Model
 {
+    use HasCapellTable;
+
     /** @use HasFactory<Factory<static>> */
     use HasFactory;
 
@@ -66,8 +69,8 @@ final class SocialSitePreferences extends Model
     protected function shareNetworkKeys(): Attribute
     {
         return Attribute::make(
-            get: fn (mixed $value) => is_string($value) ? json_decode($value, true) : [],
-            set: fn (mixed $value) => json_encode($value),
+            get: fn (mixed $value): mixed => is_string($value) ? json_decode($value, true) : [],
+            set: fn (mixed $value): string|false => json_encode($value),
         );
     }
 

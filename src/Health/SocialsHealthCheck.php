@@ -6,6 +6,7 @@ namespace Capell\Socials\Health;
 
 use Capell\Core\Contracts\Extensions\ChecksExtensionHealth;
 use Capell\Core\Data\Diagnostics\DoctorCheckResultData;
+use Capell\Core\Support\TableName;
 use Capell\Socials\Blocks\SocialsBlockDefinitionProvider;
 use Capell\Socials\Blocks\SocialsBlockRenderer;
 use Capell\Socials\Contracts\SocialNetworkRegistry;
@@ -27,7 +28,7 @@ final class SocialsHealthCheck implements ChecksExtensionHealth
     public static function runDiagnostics(): Collection
     {
         $missingTables = array_values(array_filter(
-            self::RequiredTables,
+            array_map(TableName::resolve(...), self::RequiredTables),
             static fn (string $table): bool => ! Schema::hasTable($table),
         ));
 

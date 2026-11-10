@@ -43,7 +43,7 @@ return [
         'same_tab' => 'Same tab',
         'new_tab' => 'New tab',
         'start' => 'Start',
-        'center' => 'Center',
+        'center' => 'Centre',
         'end' => 'End',
     ],
     'admin' => [

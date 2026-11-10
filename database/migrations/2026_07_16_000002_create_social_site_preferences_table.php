@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Support\TableName;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -14,10 +15,10 @@ return new class extends Migration
 
     public function up(): void
     {
-        if (! Schema::hasTable('social_site_preferences')) {
-            Schema::create('social_site_preferences', function (Blueprint $table): void {
+        if (! TableName::existsAndIsOwned('social_site_preferences', basename(__FILE__, '.php'))) {
+            Schema::create(TableName::resolve('social_site_preferences'), function (Blueprint $table): void {
                 $table->id();
-                $table->foreignId('site_id')->unique()->constrained('sites')->cascadeOnDelete();
+                $table->foreignId('site_id')->unique()->constrained(TableName::resolve('sites'))->cascadeOnDelete();
                 $table->string('follow_label_style')->default('icons');
                 $table->boolean('follow_open_in_new_tab')->default(false);
                 $table->json('share_network_keys')->nullable();
@@ -42,7 +43,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('social_site_preferences');
+        Schema::dropIfExists(TableName::resolve('social_site_preferences'));
         Schema::dropIfExists(self::GENERATION_TABLE);
     }
 };

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Support\TableName;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -10,13 +11,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (Schema::hasTable('social_profiles')) {
+        if (TableName::existsAndIsOwned('social_profiles', basename(__FILE__, '.php'))) {
             return;
         }
 
-        Schema::create('social_profiles', function (Blueprint $table): void {
+        Schema::create(TableName::resolve('social_profiles'), function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('site_id')->constrained('sites')->cascadeOnDelete();
+            $table->foreignId('site_id')->constrained(TableName::resolve('sites'))->cascadeOnDelete();
             $table->string('network_key')->nullable();
             $table->string('profile_value');
             $table->string('custom_label')->nullable();
@@ -31,6 +32,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('social_profiles');
+        Schema::dropIfExists(TableName::resolve('social_profiles'));
     }
 };

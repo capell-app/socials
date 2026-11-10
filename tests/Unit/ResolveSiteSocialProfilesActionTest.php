@@ -11,6 +11,7 @@ use Capell\Socials\Models\SocialSitePreferences;
 use Capell\Socials\Support\BuiltIns\BuiltInSocialNetworkDefinitions;
 use Capell\Socials\Support\HttpUrlValidator;
 use Capell\Socials\Support\SocialNetworkRegistry;
+use Illuminate\Config\Repository as ConfigRepository;
 use Illuminate\Container\Container;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Schema\Blueprint;
@@ -36,7 +37,9 @@ beforeEach(function (): void {
     $container = new Application;
     $loader = new ArrayLoader;
     $loader->addMessages('en', 'capell-socials::socials', require dirname(__DIR__, 2) . '/resources/lang/en/socials.php');
+
     $container->instance('translator', new Translator($loader, 'en'));
+    $container->instance('config', new ConfigRepository([]));
     $container->instance('db', $capsule->getDatabaseManager());
     $container->instance('db.schema', $capsule->schema());
     Container::setInstance($container);

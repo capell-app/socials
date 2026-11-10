@@ -2,159 +2,58 @@
 
 <!-- prettier-ignore-start -->
 
-## What This Plugin Adds
-
-Socials is an **Available**, **Schema-owning** Capell package in the **Capell Foundation** product group. It ships as `capell-app/socials` and extends these surfaces: admin, frontend, console, shared.
+## What It Does
 
 Socials adds site-scoped registered and custom social profiles, shared follow and share defaults, and an explicit Block Library widget.
 
+- **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/extensions/socials).
+- **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/extensions/socials).
+- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/block-library ^1.0`, `capell-app/core ^1.0.75`, `capell-app/frontend ^1.0`, `laravel/framework ^12.61.1|^13.12.0`, `lorisleiva/laravel-actions ^2.8`, `spatie/laravel-package-tools ^1.14.1`.
+- **Install:** `composer require capell-app/socials`.
+
 Admins manage profiles and previews on the Socials page, then editors place follow or share links on selected pages. Visitors receive accessible links without social SDKs or tracking scripts.
 
-Status details:
-
-- Status: Available
-- Tier: free
-- Bundle: foundation
-- Composer package: `capell-app/socials`
-- Namespace: `Capell\Socials`
-- Theme key: not applicable
-
-## Why It Matters
+## Who It Is For
 
 **For developers:** The network registry, public resolver contract, and typed render data keep profile validation separate from admin forms and public rendering.
 
 **For teams:** Teams can approve social profiles once per site, reuse them in follow blocks, and offer canonical page sharing without embedding third-party scripts.
 
-## Screens And Workflow
+## Quick Start
 
-Screenshot contract: `docs/screenshots.json`.
+1. Install the package: `composer require capell-app/socials`.
+2. Run the package setup: `php artisan capell:socials-install`.
+3. Open the package admin surface at `/admin/socials` and confirm Socials is available.
+
+## Configure
+
+- **Commands:** `php artisan capell:socials-install`.
+
+## Limits And Pitfalls
+
+- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.66`, `capell-app/block-library ^1.0`, `capell-app/core ^1.0.75`, `capell-app/frontend ^1.0`.
+- Run migrations before opening package resources or public routes.
+- Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
+- Custom write integrations must preserve invalidation for `socials` cache tags.
+
+## Screens And Workflow
 
 ![Site-scoped Socials management](docs/screenshots/socials-site-profile-management.png)
 
 ![Follow and share appearance beside the unsaved preview](docs/screenshots/socials-defaults-and-preview.png)
 
-- Site-scoped Socials management (admin, required evidence).
-- Follow and share appearance beside the unsaved preview (admin, required evidence).
-- Accessible follow widget output (frontend, required evidence).
-- Unsaved follow and share preview (admin, supplementary evidence).
-- Socials validation and save error state (admin, supplementary evidence).
-- Canonical share widget output (frontend, required evidence).
-- Developer registry extensibility (shared, required evidence).
-- Site-scoped Socials management with admin sidebar menu open (admin, supplementary evidence).
+- Site-scoped Socials management (admin).
+- Follow and share appearance beside the unsaved preview (admin).
+- Accessible follow widget output (frontend).
+- Unsaved follow and share preview (admin).
+- Socials validation and save error state (admin).
+- Canonical share widget output (frontend).
+- Developer registry extensibility (shared).
+- Site-scoped Socials management with admin sidebar menu open (admin).
 
 ## Works With
 
 No optional companion integrations are currently declared with executable evidence.
-
-## Technical Shape
-
-### Service providers
-
-- `Capell\Socials\Providers\SocialsServiceProvider`
-- `Capell\Socials\Providers\AdminServiceProvider`
-
-### Migrations
-
-- `packages/socials/database/migrations/2026_07_16_000001_create_social_profiles_table.php`
-- `packages/socials/database/migrations/2026_07_16_000002_create_social_site_preferences_table.php`
-- `packages/socials/database/migrations/2026_08_31_000001_add_share_networks_customised_to_social_site_preferences.php`
-- `packages/socials/database/migrations/2026_09_07_000002_make_share_network_keys_nullable.php`
-
-### Models
-
-- `SocialProfile`
-- `SocialSitePreferences`
-
-### Filament classes
-
-- `SocialsBuilderBlock`
-- `SocialsPage`
-
-### Extension contracts
-
-- `SocialNetworkRegistry`
-- `SocialProfileNormalizer`
-- `SocialProfileValidator`
-- `SocialProfilesResolver`
-- `SocialShareUrlGenerator`
-
-### Actions
-
-- `BuildFollowSocialRenderDataAction`
-- `BuildShareLinksAction`
-- `BuildShareSocialRenderDataAction`
-- `ImportLegacySocialProfilesAction`
-- `OverrideSocialNetworkDefinitionAction`
-- `PrepareSocialSiteRenderDataAction`
-- `RegisterBuiltInSocialNetworksAction`
-- `ResolveSiteSocialProfilesAction`
-- `ResolveSocialProfileChoicesAction`
-- `SaveSocialSiteConfigurationAction`
-- `SeedSocialsScreenshotFixtureAction`
-
-### Data objects
-
-- `LegacySocialImportResultData`
-- `NormalizedSocialProfileData`
-- `PreparedSocialProfileData`
-- `PreparedSocialSiteData`
-- `ShareLinkData`
-- `ShareLinksData`
-- `SharePageContextData`
-- `SocialCustomLinkConfigurationData`
-- `SocialFollowRenderData`
-- `SocialFollowWidgetConfigData`
-- `SocialNetworkDefinitionData`
-- `SocialProfileChoicesData`
-- `SocialProfileConfigurationData`
-- `SocialProfileData`
-- `SocialProfilesData`
-- `SocialShareRenderData`
-- `SocialShareWidgetConfigData`
-- `SocialSitePreferencesData`
-
-### Command signatures
-
-- `capell:socials-install`
-
-### Console command classes
-
-- `InstallSocialsCommand`
-- `SeedSocialsScreenshotFixtureCommand`
-
-### Manifest contributions
-
-- `admin-page: Capell\Socials\Manifest\SocialsAdminPageContribution`
-- `frontend-component: Capell\Socials\Manifest\SocialsWidgetContribution`
-- `migration: Capell\Socials\Manifest\SocialsMigrationsContribution`
-- `model: Capell\Socials\Manifest\SocialProfileModelContribution`
-- `model: Capell\Socials\Manifest\SocialSitePreferencesModelContribution`
-
-### Health checks
-
-- `Capell\Socials\Health\SocialsHealthCheck`
-
-### Blade views
-
-- `packages/socials/resources/views/blocks/icon.blade.php`
-- `packages/socials/resources/views/blocks/socials.blade.php`
-- `packages/socials/resources/views/filament/pages/socials.blade.php`
-- `packages/socials/resources/views/filament/partials/follow-preview.blade.php`
-- `packages/socials/resources/views/filament/partials/share-preview.blade.php`
-
-### Cache tags
-
-- `socials`
-
-
-## Data Model
-
-- Required tables: `social_profiles`, `social_site_preferences`.
-- Models: `SocialProfile`, `SocialSitePreferences`.
-- Core record references in migrations: `sites via site_id`.
-- Migration files: `2026_07_16_000001_create_social_profiles_table.php`, `2026_07_16_000002_create_social_site_preferences_table.php`, `2026_08_31_000001_add_share_networks_customised_to_social_site_preferences.php`, `2026_09_07_000002_make_share_network_keys_nullable.php`.
-- Migration impact: run host migrations through the package install flow before opening package surfaces.
-- Deletion/retention behaviour: migrations declare cascade-on-delete relationships; no timed pruning or retention schedule is declared in `capell.json`.
 
 ## Install Impact
 
@@ -170,13 +69,6 @@ No optional companion integrations are currently declared with executable eviden
 - Cache tags: `socials`.
 - Commands: `capell:socials-install`.
 
-## Common Pitfalls
-
-- Keep required Capell packages on compatible v4 releases: `capell-app/core`, `capell-app/admin`, `capell-app/frontend`, `capell-app/block-library`.
-- Run migrations before opening package resources or public routes.
-- Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
-- Custom write integrations must preserve invalidation for `socials` cache tags.
-
 ## Troubleshooting
 
 | Symptom | Likely cause | Check | Fix |
@@ -184,12 +76,6 @@ No optional companion integrations are currently declared with executable eviden
 | Package surface is missing after install | Provider or manifest is not loaded | Confirm `capell.json`, package `composer.json`, and provider registration | Reinstall the package, refresh Composer autoload, and clear host caches |
 | Admin screen or command fails on missing table | Package migrations have not run | Check the tables listed in `Data Model` | Run host migrations and rerun the focused package test |
 | Public output leaks unexpected state | Render data, cache variation, or authoring boundary has regressed | Check public Blade, cache tags, and public-output safety tests | Move data loading out of Blade and rerun the package public-output tests |
-
-## Quick Start
-
-1. Install the package: `composer require capell-app/socials`.
-2. Run the package setup: `php artisan capell:socials-install`.
-3. Open the package admin surface at `/admin/socials` and confirm Socials is available.
 
 ## Upgrading
 
@@ -201,7 +87,7 @@ No manual steps between minor versions.
 - [Overview](docs/overview.md)
 - [Worked extension examples](docs/extension-contracts.md)
 - [Troubleshooting](#troubleshooting)
-- [Screenshot contract](docs/screenshots.json)
+- [Developer reference](docs/reference.md)
 - [Marketplace assets](docs/assets/marketplace/)
 - [Capell content language plan](../../docs/CONTENT_LANGUAGE_PLAN.md)
 - [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)

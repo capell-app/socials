@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Capell\Socials\Models;
 
+use Capell\Core\Concerns\HasCapellTable;
 use Capell\Core\Models\Site;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Override;
@@ -20,6 +23,11 @@ use Override;
  */
 final class SocialProfile extends Model
 {
+    use HasCapellTable;
+
+    /** @use HasFactory<Factory<static>> */
+    use HasFactory;
+
     protected $table = 'social_profiles';
 
     /** @var list<string> */

@@ -10,7 +10,7 @@
     "product": {
         "tier": "free",
         "bundle": "foundation",
-        "group": "Capell Foundation"
+        "group": "Capell Essentials"
     },
     "namespace": "Capell\\Socials",
     "surfaces": ["admin", "frontend", "console", "shared"],
@@ -25,7 +25,9 @@
         "conflicts": []
     },
     "providers": {
-        "metadata": [],
+        "metadata": [
+            "Capell\\Socials\\Providers\\MigrationMetadataServiceProvider"
+        ],
         "install": [],
         "runtime": ["Capell\\Socials\\Providers\\SocialsServiceProvider"],
         "admin": ["Capell\\Socials\\Providers\\AdminServiceProvider"],
@@ -164,6 +166,22 @@
     },
     "marketplace": {
         "summary": "Manage trusted social profiles once per site and place accessible follow or share links wherever a layout needs them.",
+        "problem": "Site teams maintaining social links in several places can leave profiles inconsistent.",
+        "outcome": "A site has managed social profiles and selected follow or share links.",
+        "faq": [
+            {
+                "question": "Where are social profiles managed?",
+                "answer": "Administrators manage site-scoped registered and custom profiles on the Socials page."
+            },
+            {
+                "question": "Can editors choose where links appear?",
+                "answer": "Yes. Editors place follow or share links on selected pages."
+            },
+            {
+                "question": "Do public links load social tracking scripts?",
+                "answer": "No. Visitors receive accessible links without social SDKs or tracking scripts."
+            }
+        ],
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.svg",

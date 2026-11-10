@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Capell\Socials\Enums\SocialLabelStyle;
 use Capell\Socials\Models\SocialProfile;
 use Capell\Socials\Models\SocialSitePreferences;
+use Illuminate\Config\Repository as ConfigRepository;
 use Illuminate\Container\Container;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +32,7 @@ beforeEach(function (): void {
     $capsule->bootEloquent();
 
     $container = new Application;
+    $container->instance('config', new ConfigRepository([]));
     $container->instance('db', $capsule->getDatabaseManager());
     $container->instance('db.schema', $capsule->schema());
 

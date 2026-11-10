@@ -7,6 +7,7 @@ namespace Capell\Socials\Actions;
 use Capell\Admin\Support\SiteScope;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\Translation;
+use Capell\Core\Support\TableName;
 use Capell\Socials\Contracts\SocialNetworkRegistry;
 use Capell\Socials\Data\SocialProfileChoicesData;
 use Capell\Socials\Data\SocialProfileConfigurationData;
@@ -35,7 +36,7 @@ final class ResolveSocialProfileChoicesAction
             ? SocialSiteId::fromInput($record->getKey())
             : SocialSiteId::fromInput($record?->getAttribute('site_id') ?? $contextSite?->getKey());
 
-        if ($siteId === null || ! Schema::hasTable('social_profiles')
+        if ($siteId === null || ! Schema::hasTable(TableName::resolve('social_profiles'))
             || ! SiteScope::applyForCurrentActor(Site::query(), 'id')->whereKey($siteId)->exists()) {
             return new SocialProfileChoicesData([]);
         }

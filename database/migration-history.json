@@ -1,0 +1,22 @@
+{
+    "create_social_profiles_table": {
+        "names": [
+            "2026_07_16_000001_create_social_profiles_table"
+        ],
+        "sha256": [
+            "0ff8e6514cdb42e4aeeaddbe4e22d3f234ba07422c87c54175feff77d754e0b6",
+            "7dfe43421a66c80611ad1de5e032b8827fc42a12b2e1b135a843d1d9a2d47e20"
+        ]
+    },
+    "create_social_site_preferences_table": {
+        "names": [
+            "2026_07_16_000002_create_social_site_preferences_table"
+        ],
+        "sha256": [
+            "07108a10bf71a2acd57d329df4e019473cf03e8cb3141b079c5b70ab0aee6c74",
+            "40682ed8efcb44487a2b87eb15ec9ffa44e4b251b8021d8009124475d6bdc168",
+            "876f1579aaac195084b75cbfca3df5d083b7b3351dbe44608eb31af60137ab42",
+            "e019abe04b7182d532d1edd99c1db518090970b510f178b0aefceb565d50ee20"
+        ]
+    }
+}

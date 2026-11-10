@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Capell\Socials\Actions;
 
 use Capell\Core\Models\Site;
+use Capell\Core\Support\TableName;
 use Capell\Frontend\Contracts\FrontendContextReader;
 use Capell\Socials\Contracts\SocialNetworkRegistry;
 use Capell\Socials\Contracts\SocialProfilesResolver;
 use Capell\Socials\Data\PreparedSocialSiteData;
+use Capell\Socials\Data\SocialNetworkDefinitionData;
 use Capell\Socials\Data\SocialProfileConfigurationData;
 use Capell\Socials\Data\SocialProfileData;
 use Capell\Socials\Data\SocialProfilesData;
@@ -49,9 +51,9 @@ final class ResolveSiteSocialProfilesAction implements SocialProfilesResolver
 
         $siteId = SocialSiteId::from($site);
 
-        return (Schema::hasTable('social_profiles')
+        return (Schema::hasTable(TableName::resolve('social_profiles'))
                 && SocialProfile::query()->where('site_id', $siteId)->exists())
-            || (Schema::hasTable('social_site_preferences')
+            || (Schema::hasTable(TableName::resolve('social_site_preferences'))
                 && SocialSitePreferences::query()->where('site_id', $siteId)->exists());
     }
 
@@ -64,7 +66,7 @@ final class ResolveSiteSocialProfilesAction implements SocialProfilesResolver
             return new SocialProfilesData($prepared->profiles($profileIds));
         }
 
-        if (! Schema::hasTable('social_profiles')) {
+        if (! Schema::hasTable(TableName::resolve('social_profiles'))) {
             return new SocialProfilesData([]);
         }
 
@@ -88,7 +90,7 @@ final class ResolveSiteSocialProfilesAction implements SocialProfilesResolver
                 $locale,
             );
 
-            if ($renderedProfile !== null) {
+            if ($renderedProfile instanceof SocialProfileData) {
                 $renderedProfiles[] = $renderedProfile;
             }
         }
@@ -109,7 +111,7 @@ final class ResolveSiteSocialProfilesAction implements SocialProfilesResolver
 
         $network = $this->networkRegistry->get($networkKey);
 
-        if ($network === null) {
+        if (! $network instanceof SocialNetworkDefinitionData) {
             return null;
         }
 

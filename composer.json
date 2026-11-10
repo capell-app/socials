@@ -27,7 +27,7 @@
         "php": "^8.4",
         "capell-app/admin": "^1.0.66",
         "capell-app/block-library": "^1.0",
-        "capell-app/core": "^1.0.66",
+        "capell-app/core": "^1.0.75",
         "capell-app/frontend": "^1.0",
         "laravel/framework": "^12.61.1|^13.12.0",
         "lorisleiva/laravel-actions": "^2.8",
