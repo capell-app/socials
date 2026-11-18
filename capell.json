@@ -6,7 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^1.0",
     "version": "1.0.0",
-    "description": "First-party social profiles, sharing preferences, and safe follow and share widgets for Capell.",
+    "description": "Keep one list of social profiles per site and show follow or share links on pages with the Socials block, without network scripts.",
     "product": {
         "tier": "free",
         "bundle": "foundation",
@@ -92,9 +92,10 @@
         "socials-profiles",
         "socials-sharing",
         "socials-registry",
-        "socials-widget",
-        "socials-cache-epoch"
+        "socials-widget"
     ],
+    "agent_tools": "none",
+    "agent_tools_reason": "Socials only renders profile links and share links that open the visitor's chosen network; it has no action or data an agent could run or read on the page.",
     "security": {
         "riskTier": "standard",
         "publicSurface": {
@@ -165,56 +166,62 @@
         "privateDocsRequested": false
     },
     "marketplace": {
-        "summary": "Manage trusted social profiles once per site and place accessible follow or share links wherever a layout needs them.",
-        "problem": "Site teams maintaining social links in several places can leave profiles inconsistent.",
-        "outcome": "A site has managed social profiles and selected follow or share links.",
+        "summary": "One list of social profiles per site, and a block that shows plain follow or share links.",
+        "description": "Store each site's social profiles once and place them with a block. Editors choose follow or share mode, label style, alignment and link target. Eleven built-in networks and custom links are covered, with a live preview in the admin and icons drawn inline.",
+        "problem": "Social links are hard-coded in several places and out of step.",
+        "outcome": "One list per site drives the follow and share links on any page.",
         "faq": [
             {
-                "question": "Where are social profiles managed?",
-                "answer": "Administrators manage site-scoped registered and custom profiles on the Socials page."
+                "question": "Do the links load anything from the social networks?",
+                "answer": "No. Visitors see small icons, text labels or both, drawn as plain links that load no scripts from the networks, and a click takes them to the network."
             },
             {
-                "question": "Can editors choose where links appear?",
-                "answer": "Yes. Editors place follow or share links on selected pages."
+                "question": "What must happen before editors can use it?",
+                "answer": "A developer runs the install command once on the server. It sets up the storage for your lists and also runs every other pending database update."
             },
             {
-                "question": "Do public links load social tracking scripts?",
-                "answer": "No. Visitors receive accessible links without social SDKs or tracking scripts."
+                "question": "Which networks are built in?",
+                "answer": "Eleven, including X, Facebook and LinkedIn, and a custom link covers anything else. Handles and addresses are checked against the network."
+            },
+            {
+                "question": "Can an editor limited to one site change another site's list?",
+                "answer": "No. People limited to certain sites can edit only those sites' lists, and each site has one list."
             }
         ],
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.svg",
-                "alt": "Socials extension marketplace card.",
-                "caption": "Social profile and sharing controls for Capell."
+                "alt": "Dark Socials card with a green circle and plus sign and the words Trusted profiles and sharing",
+                "caption": "Simple listing artwork for the package, not a working screen."
             },
             {
                 "path": "docs/screenshots/socials-site-profile-management.png",
-                "alt": "The site-scoped Socials profile editor in Capell Admin.",
-                "caption": "Manage ordered registered and custom profiles for each site."
+                "alt": "Social profiles page listing X, LinkedIn and Community entries with a site picker, an add button and a follow preview",
+                "caption": "Keep one list of profiles per site, in the order visitors will see them."
             },
             {
                 "path": "docs/screenshots/socials-defaults-and-preview.png",
-                "alt": "Socials follow and share defaults with their live preview.",
-                "caption": "Check unsaved follow and share treatment before publishing it."
+                "alt": "Follow links and Share links settings with label style choices and previews showing X, LinkedIn and Community buttons",
+                "caption": "Check how the follow and share links will look before you save."
             },
             {
                 "path": "docs/screenshots/socials-follow-widget.png",
-                "alt": "A public Socials follow widget with accessible profile links.",
-                "caption": "Render trusted follow links without a social SDK."
+                "alt": "A Follow Capell heading above three rounded link buttons for X, LinkedIn and Community on a pale page",
+                "caption": "What visitors see when you add a Follow block to a page."
             },
             {
                 "path": "docs/screenshots/socials-share-widget.png",
-                "alt": "A public Socials share widget with canonical page links.",
-                "caption": "Share the canonical page URL with tracker-free network links."
+                "alt": "A Share this guide heading above two rounded link buttons for X and LinkedIn on a pale page",
+                "caption": "What visitors see when you add a Share block to a page."
             },
             {
                 "path": "docs/screenshots/socials-registry-extension.png",
-                "alt": "A Socials registry extension example for a custom network.",
-                "caption": "Extend supported networks through the package registry."
+                "alt": "Grid of eleven network tiles from X to Threads, each showing its short names and whether it supports follow or share",
+                "caption": "Which networks support follow links and which also support share links."
             }
         ],
         "categories": ["admin", "frontend", "foundation"]
     },
-    "contributionTraceability": { "deferredContributions": [] }
+    "contributionTraceability": { "deferredContributions": [] },
+    "roles": ["site-social-fields"]
 }

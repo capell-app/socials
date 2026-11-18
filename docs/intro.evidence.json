@@ -1,0 +1,75 @@
+[
+    {
+        "claim": "Follow links to your social profiles, or share links for the page a visitor is on, can sit wherever an editor places them",
+        "evidence": [
+            "src/Blocks/SocialsBlockRenderer.php",
+            "src/Filament/BuilderBlocks/SocialsBuilderBlock.php",
+            "src/Blocks/SocialsBlockDefinitionProvider.php"
+        ]
+    },
+    {
+        "claim": "Visitors see small icons, text labels or both, drawn as plain links that load no scripts from the networks",
+        "evidence": [
+            "src/Enums/SocialLabelStyle.php",
+            "resources/views/blocks/socials.blade.php",
+            "resources/views/blocks/icon.blade.php"
+        ]
+    },
+    {
+        "claim": "You keep one list for each site, on the Socials page under the Growth menu in the admin",
+        "evidence": [
+            "src/Filament/Pages/SocialsPage.php",
+            "resources/lang/en/socials.php",
+            "src/Models/SocialProfile.php"
+        ]
+    },
+    {
+        "claim": "Choose a network, type a handle or address, and add a public label if you want one",
+        "evidence": [
+            "src/Filament/Pages/SocialsPage.php",
+            "resources/lang/en/socials.php"
+        ]
+    },
+    {
+        "claim": "Eleven networks are built in, including X, Facebook and LinkedIn, and a custom link covers anything else",
+        "evidence": [
+            "src/Support/BuiltIns/BuiltInSocialNetworkDefinitions.php",
+            "src/Filament/Pages/SocialsPage.php"
+        ]
+    },
+    {
+        "claim": "Handles and addresses are checked against the network, and a preview shows the follow and share links before you save",
+        "evidence": [
+            "src/Support/NetworkProfileNormalizer.php",
+            "src/Support/MastodonProfileNormalizer.php",
+            "src/Support/HttpUrlValidator.php",
+            "resources/views/filament/partials/follow-preview.blade.php",
+            "resources/views/filament/partials/share-preview.blade.php"
+        ]
+    },
+    {
+        "claim": "A developer runs the install command once; it sets up the storage for your lists and also runs every other pending database update",
+        "evidence": [
+            "src/Console/Commands/InstallSocialsCommand.php",
+            "database/migrations/2026_07_16_000001_create_social_profiles_table.php",
+            "database/migrations/2026_07_16_000002_create_social_site_preferences_table.php"
+        ]
+    },
+    {
+        "claim": "Editors add the Socials block and pick Follow or Share, a heading and how it is aligned",
+        "evidence": ["src/Filament/BuilderBlocks/SocialsBuilderBlock.php"]
+    },
+    {
+        "claim": "People limited to certain sites can edit only those sites' lists",
+        "evidence": ["src/Filament/Pages/SocialsPage.php"]
+    },
+    {
+        "claim": "Clicking a share link opens the visitor's network with the page's address filled in, plus its title on networks that take one",
+        "evidence": [
+            "src/Blocks/SocialsBlockRenderer.php",
+            "src/Support/ShareUrlGenerator.php",
+            "src/Support/MessageShareUrlGenerator.php",
+            "src/Support/BuiltIns/BuiltInSocialNetworkDefinitions.php"
+        ]
+    }
+]

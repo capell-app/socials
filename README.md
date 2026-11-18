@@ -2,28 +2,28 @@
 
 <!-- prettier-ignore-start -->
 
-## What It Does
+Follow links to your social profiles, or share links for the page a visitor is on, can sit wherever an editor places them. Visitors see small icons, text labels or both, drawn as plain links that load no scripts from the networks, and a click takes them to the network.
 
-Socials adds site-scoped registered and custom social profiles, shared follow and share defaults, and an explicit Block Library widget.
+You keep one list for each site, on the Socials page under the Growth menu in the admin. Choose a network, type a handle or address, and add a public label if you want one. Eleven networks are built in, including X, Facebook and LinkedIn, and a custom link covers anything else. Handles and addresses are checked against the network, and a preview shows the follow and share links before you save.
+
+Before editors can use it, a developer runs the install command once on the server. It sets up the storage for your lists and also runs every other pending database update. Editors then add the Socials block, an item placed on a page, and pick Follow or Share, a heading and how it is aligned. People limited to certain sites can edit only those sites' lists.
+
+Clicking a share link opens the visitor's own network to finish the post, with the page's address filled in, plus its title on networks that take one.
 
 - **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/extensions/socials).
 - **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/extensions/socials).
 - **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/block-library ^1.0`, `capell-app/core ^1.0.75`, `capell-app/frontend ^1.0`, `laravel/framework ^12.61.1|^13.12.0`, `lorisleiva/laravel-actions ^2.8`, `spatie/laravel-package-tools ^1.14.1`.
 - **Install:** `composer require capell-app/socials`.
 
-Admins manage profiles and previews on the Socials page, then editors place follow or share links on selected pages. Visitors receive accessible links without social SDKs or tracking scripts.
-
-## Who It Is For
-
-**For developers:** The network registry, public resolver contract, and typed render data keep profile validation separate from admin forms and public rendering.
-
-**For teams:** Teams can approve social profiles once per site, reuse them in follow blocks, and offer canonical page sharing without embedding third-party scripts.
-
 ## Quick Start
 
 1. Install the package: `composer require capell-app/socials`.
 2. Run the package setup: `php artisan capell:socials-install`.
 3. Open the package admin surface at `/admin/socials` and confirm Socials is available.
+
+## For Developers
+
+The network registry, public resolver contract, and typed render data keep profile validation separate from admin forms and public rendering.
 
 ## Configure
 

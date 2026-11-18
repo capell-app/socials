@@ -6,7 +6,7 @@ Developer reference for `capell-app/socials`. Start with the [README](../README.
 
 ## Package Details
 
-Socials is an **Available**, **Schema-owning** Capell package in the **Capell Essentials** product group. It ships as `capell-app/socials` and extends these surfaces: admin, frontend, console, shared.
+Socials is an **Available** Capell package in the **Capell Essentials** product group. It ships as `capell-app/socials` and extends these surfaces: admin, frontend, console, shared.
 
 - Status: Available
 - Tier: free

@@ -1,6 +1,6 @@
 {
     "name": "capell-app/socials",
-    "description": "First-party social profile and sharing primitives for Capell.",
+    "description": "Per-site social profiles with follow and share link blocks for Capell, drawn as plain links with no network scripts.",
     "type": "library",
     "license": "proprietary",
     "autoload": {

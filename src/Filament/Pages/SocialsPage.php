@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\Socials\Filament\Pages;
 
 use BackedEnum;
+use Capell\Admin\Enums\NavigationGroupEnum;
 use Capell\Admin\Support\SiteScope;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Page as ContentPage;
@@ -110,9 +111,9 @@ final class SocialsPage extends Page implements HasForms
     }
 
     #[Override]
-    public static function getNavigationGroup(): string
+    public static function getNavigationGroup(): NavigationGroupEnum
     {
-        return __('capell-admin::navigation.group_growth');
+        return NavigationGroupEnum::Marketing;
     }
 
     #[Override]
