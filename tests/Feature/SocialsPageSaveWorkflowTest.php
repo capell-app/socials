@@ -6,6 +6,7 @@ use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\Socials\Actions\BuildShareSocialRenderDataAction;
 use Capell\Socials\Actions\PrepareSocialSiteRenderDataAction;
+use Capell\Socials\Actions\ResolveSiteSocialProfilesAction;
 use Capell\Socials\Data\PreparedSocialSiteData;
 use Capell\Socials\Data\SharePageContextData;
 use Capell\Socials\Data\SocialNetworkDefinitionData;
@@ -23,6 +24,7 @@ use Capell\Socials\Support\SocialsCacheEpoch;
 use Capell\Tests\Fixtures\Models\User;
 use Filament\Facades\Filament;
 use Filament\Panel;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -204,6 +206,26 @@ it('rotates the cache epoch when Socials models are written directly', function 
         ->and($cacheEpoch->current($siteId))->toBeGreaterThan($epochAfterUpdate);
 });
 
+it('keeps profile ids stable across repeated saves so Choose profiles blocks still resolve', function (): void {
+    $chosen = SocialProfile::query()->create([
+        'site_id' => $this->site->getKey(), 'network_key' => 'linkedin', 'profile_value' => 'capell',
+        'is_enabled' => true, 'sort_order' => 0,
+    ]);
+    $custom = SocialProfile::query()->create([
+        'site_id' => $this->site->getKey(), 'network_key' => null, 'profile_value' => 'https://example.test/community',
+        'custom_label' => 'Community', 'is_enabled' => true, 'sort_order' => 1,
+    ]);
+
+    $page = Livewire::test(SocialsPage::class);
+
+    $page->call('save')->assertHasNoErrors()->call('save')->assertHasNoErrors();
+
+    expect(SocialProfile::query()->where('site_id', $this->site->getKey())->orderBy('sort_order')->get()->map(static fn (SocialProfile $profile): int => $profile->id)->all())
+        ->toBe([$chosen->id, $custom->id])
+        ->and(ResolveSiteSocialProfilesAction::run($this->site, 'en', [$chosen->id, $custom->id])->profiles)
+        ->toHaveCount(2);
+});
+
 it('rejects a duplicate network with a validation error instead of an exception', function (): void {
     Livewire::test(SocialsPage::class)
         ->fillForm([
@@ -316,4 +338,20 @@ it('rejects a custom link that is not an http URL', function (): void {
         ->assertHasErrors();
 
     expect(SocialProfile::query()->where('site_id', $this->site->getKey())->exists())->toBeFalse();
+});
+
+it('answers its table checks from the request schema state instead of probing each table', function (): void {
+    $tableProbes = 0;
+    DB::listen(function (QueryExecuted $query) use (&$tableProbes): void {
+        $probe = preg_match('/information_schema\.tables|sqlite_master/', $query->sql) === 1;
+        $named = array_filter(['social_site_preferences', 'social_profiles'], static fn (string $table): bool => str_contains($query->sql, "'" . $table . "'") || in_array($table, $query->bindings, true));
+
+        if ($probe && $named !== []) {
+            $tableProbes++;
+        }
+    });
+    $prepared = PrepareSocialSiteRenderDataAction::run($this->site, 'en');
+
+    expect($prepared->shareNetworkKeys)->toBe(['x', 'facebook', 'linkedin', 'pinterest', 'whatsapp', 'bluesky'])
+        ->and($tableProbes)->toBe(0);
 });

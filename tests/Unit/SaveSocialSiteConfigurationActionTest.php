@@ -154,6 +154,65 @@ it('transactionally replaces a site configuration and invalidates only its cache
         ->and($this->invalidatedSurrogateKeys)->toBe([['site-1']]);
 });
 
+it('updates profiles in place so their ids survive repeated saves, and deletes only removed rows', function (): void {
+    $preferences = new SocialSitePreferencesData(saveSocialsRegistry());
+    $profiles = [
+        new SocialProfileConfigurationData('x', '@capell'),
+        new SocialProfileConfigurationData('linkedin', 'capell'),
+        new SocialProfileConfigurationData(null, 'https://example.com/community', 'Community'),
+    ];
+
+    $this->action->handle(saveSocialsSite(1), $profiles, $preferences);
+    $ids = SocialProfile::query()->where('site_id', 1)->orderBy('sort_order')->get()->map(static fn (SocialProfile $profile): int => $profile->id)->all();
+
+    $this->action->handle(saveSocialsSite(1), $profiles, $preferences);
+
+    expect(SocialProfile::query()->where('site_id', 1)->orderBy('sort_order')->get()->map(static fn (SocialProfile $profile): int => $profile->id)->all())->toBe($ids);
+
+    $this->action->handle(saveSocialsSite(1), [
+        new SocialProfileConfigurationData('linkedin', 'capell-studio', null, true, $ids[1]),
+        new SocialProfileConfigurationData(null, 'https://example.com/community', 'Community', true, $ids[2]),
+    ], $preferences);
+
+    $remaining = SocialProfile::query()->where('site_id', 1)->orderBy('sort_order')->get();
+    $kept = $remaining->firstOrFail();
+
+    expect($remaining->map(static fn (SocialProfile $profile): int => $profile->id)->all())->toBe([$ids[1], $ids[2]])
+        ->and($kept->profile_value)->toBe('capell-studio')
+        ->and($kept->sort_order)->toBe(0);
+});
+
+it('swaps two networks between rows in place without tripping the unique network index', function (): void {
+    $preferences = new SocialSitePreferencesData(saveSocialsRegistry());
+    $this->action->handle(saveSocialsSite(1), [
+        new SocialProfileConfigurationData('x', '@capell'),
+        new SocialProfileConfigurationData('linkedin', 'capell'),
+    ], $preferences);
+    [$first, $second] = SocialProfile::query()->where('site_id', 1)->orderBy('sort_order')->get()->map(static fn (SocialProfile $profile): int => $profile->id)->all();
+
+    $this->action->handle(saveSocialsSite(1), [
+        new SocialProfileConfigurationData('linkedin', 'capell', null, true, $first),
+        new SocialProfileConfigurationData('x', '@capell', null, true, $second),
+    ], $preferences);
+
+    expect(SocialProfile::query()->whereKey($first)->firstOrFail()->network_key)->toBe('linkedin')
+        ->and(SocialProfile::query()->whereKey($second)->firstOrFail()->network_key)->toBe('x');
+});
+
+it('ignores a profile id that belongs to another site', function (): void {
+    $preferences = new SocialSitePreferencesData(saveSocialsRegistry());
+    $foreign = SocialProfile::query()->create([
+        'site_id' => 2, 'network_key' => 'x', 'profile_value' => 'other', 'sort_order' => 0, 'is_enabled' => true,
+    ]);
+
+    $this->action->handle(saveSocialsSite(1), [
+        new SocialProfileConfigurationData('x', '@capell', null, true, $foreign->id),
+    ], $preferences);
+
+    expect(SocialProfile::query()->whereKey($foreign->id)->firstOrFail()->profile_value)->toBe('other')
+        ->and(SocialProfile::query()->where('site_id', 1)->count())->toBe(1);
+});
+
 it('persists the capability-backed recommended share set and leaves sharing uncustomised by default', function (): void {
     $preferences = new SocialSitePreferencesData(saveSocialsRegistry());
 

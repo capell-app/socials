@@ -30,6 +30,7 @@ use Capell\Socials\Models\SocialSitePreferences;
 use Capell\Socials\Support\HttpUrlValidator;
 use Capell\Socials\Support\SocialSiteId;
 use Closure;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -185,6 +186,7 @@ final class SocialsPage extends Page implements HasForms
                             ->itemLabel(fn (array $state): string => $this->profileSummary($state))
                             ->live()
                             ->schema([
+                                Hidden::make('id'),
                                 Select::make('network_key')
                                     ->label(__('capell-socials::socials.admin.network'))
                                     ->options($this->networkOptions())
@@ -523,6 +525,7 @@ final class SocialsPage extends Page implements HasForms
             ->orderBy('id')
             ->get()
             ->map(static fn (SocialProfile $profile): array => [
+                'id' => $profile->getKey(),
                 'network_key' => $profile->network_key ?? self::CUSTOM_NETWORK_KEY,
                 'profile_value' => $profile->profile_value,
                 'custom_label' => $profile->custom_label,
@@ -757,6 +760,7 @@ final class SocialsPage extends Page implements HasForms
                     profileValue: is_string($profile['profile_value'] ?? null) ? $profile['profile_value'] : '',
                     customLabel: $customLabel,
                     isEnabled: (bool) ($profile['is_enabled'] ?? false),
+                    id: is_numeric($profile['id'] ?? null) ? (int) $profile['id'] : null,
                 );
             })
             ->values()

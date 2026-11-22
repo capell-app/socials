@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\Socials\Actions;
 
 use Capell\Core\Models\Site;
+use Capell\Core\Support\Database\RuntimeSchemaState;
 use Capell\Core\Support\TableName;
 use Capell\Socials\Contracts\SocialNetworkRegistry;
 use Capell\Socials\Data\PreparedSocialProfileData;
@@ -21,7 +22,6 @@ use Capell\Socials\Support\SocialNetworkRegistrySignature;
 use Capell\Socials\Support\SocialsCacheEpoch;
 use Capell\Socials\Support\SocialSiteId;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Schema;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
@@ -150,7 +150,7 @@ final class PrepareSocialSiteRenderDataAction
 
     private function build(int $siteId, string $locale): PreparedSocialSiteData
     {
-        $storedPreferences = Schema::hasTable(TableName::resolve('social_site_preferences'))
+        $storedPreferences = resolve(RuntimeSchemaState::class)->hasTableOrFail(TableName::resolve('social_site_preferences'))
             ? SocialSitePreferences::query()->firstWhere('site_id', $siteId)
             : null;
         $hasPreferences = $storedPreferences instanceof SocialSitePreferences;
@@ -163,7 +163,7 @@ final class PrepareSocialSiteRenderDataAction
         $shareLabelStyle = $preferences->share_label_style ?? SocialLabelStyle::Icons;
         $shareOpenInNewTab = $preferences->share_open_in_new_tab ?? false;
 
-        if (! Schema::hasTable(TableName::resolve('social_profiles'))) {
+        if (! resolve(RuntimeSchemaState::class)->hasTableOrFail(TableName::resolve('social_profiles'))) {
             return new PreparedSocialSiteData($followLabelStyle, $followOpenInNewTab, $shareNetworkKeys, $shareLabelStyle, $shareOpenInNewTab, [], $hasPreferences);
         }
 

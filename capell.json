@@ -222,6 +222,15 @@
         ],
         "categories": ["admin", "frontend", "foundation"]
     },
-    "contributionTraceability": { "deferredContributions": [] },
+    "contributionTraceability": {
+        "deferredContributions": [],
+        "contributions": [
+            {
+                "type": "builder-block",
+                "key": "builder-block:Capell\\Socials\\Filament\\BuilderBlocks\\SocialsBuilderBlock",
+                "providerBucket": "admin"
+            }
+        ]
+    },
     "roles": ["site-social-fields"]
 }

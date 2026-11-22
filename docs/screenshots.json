@@ -1,7 +1,8 @@
 {
     "package": "socials",
     "composerName": "capell-app/socials",
-    "generatedFor": "deployment-screenshot-runner",
+    "generatedFor": "shared-capell-screenshot-runner",
+    "provenancePolicy": "runner-only-v1",
     "requiresInstalledPackage": true,
     "composerRequires": ["capell-app/socials", "capell-app/block-library"],
     "fixtureCommands": ["capell:socials-screenshot-fixture"],

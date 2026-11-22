@@ -15,6 +15,7 @@ use Capell\Socials\Models\SocialSitePreferences;
 use Capell\Socials\Support\HttpUrlValidator;
 use Capell\Socials\Support\SocialsCacheEpoch;
 use Capell\Socials\Support\SocialSiteId;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Lorisleiva\Actions\Concerns\AsFake;
@@ -41,20 +42,7 @@ final class SaveSocialSiteConfigurationAction
         $profiles = $this->validatedProfiles($profiles);
 
         return DB::transaction(function () use ($siteId, $profiles, $preferences): SocialSitePreferences {
-            SocialProfile::query()
-                ->where('site_id', $siteId)
-                ->delete();
-
-            foreach ($profiles as $sortOrder => $profile) {
-                SocialProfile::query()->create([
-                    'site_id' => $siteId,
-                    'network_key' => $profile->networkKey,
-                    'profile_value' => $profile->profileValue,
-                    'custom_label' => $profile->customLabel,
-                    'sort_order' => $sortOrder,
-                    'is_enabled' => $profile->isEnabled,
-                ]);
-            }
+            $this->syncProfiles($siteId, $profiles);
 
             $sitePreferences = SocialSitePreferences::query()->updateOrCreate(
                 ['site_id' => $siteId],
@@ -76,6 +64,82 @@ final class SaveSocialSiteConfigurationAction
 
             return $sitePreferences;
         });
+    }
+
+    /**
+     * Updates rows in place so blocks that store a profile by id keep resolving it
+     * after every save; only rows the editor removed are deleted.
+     *
+     * @param  list<SocialProfileConfigurationData>  $profiles
+     */
+    private function syncProfiles(int $siteId, array $profiles): void
+    {
+        /** @var Collection<int, SocialProfile> $existing */
+        $existing = SocialProfile::query()->where('site_id', $siteId)->get()->keyBy('id');
+        $claimed = [];
+        $matches = [];
+
+        foreach ($profiles as $index => $profile) {
+            $match = $this->matchExisting($existing, $claimed, $profile);
+
+            if ($match instanceof SocialProfile) {
+                $claimed[$match->id] = true;
+                $matches[$index] = $match;
+            }
+        }
+
+        $existing
+            ->reject(static fn (SocialProfile $row): bool => isset($claimed[$row->id]))
+            ->each(static fn (SocialProfile $row): ?bool => $row->delete());
+
+        // Free every network key being moved first so two rows can swap networks
+        // without tripping the unique (site, network) index mid-save.
+        foreach ($profiles as $index => $profile) {
+            $match = $matches[$index] ?? null;
+
+            if ($match instanceof SocialProfile && $match->network_key !== null && $match->network_key !== $profile->networkKey) {
+                $match->update(['network_key' => null]);
+            }
+        }
+
+        foreach ($profiles as $sortOrder => $profile) {
+            $attributes = [
+                'network_key' => $profile->networkKey,
+                'profile_value' => $profile->profileValue,
+                'custom_label' => $profile->customLabel,
+                'sort_order' => $sortOrder,
+                'is_enabled' => $profile->isEnabled,
+            ];
+            $match = $matches[$sortOrder] ?? null;
+
+            if ($match instanceof SocialProfile) {
+                $match->update($attributes);
+
+                continue;
+            }
+
+            SocialProfile::query()->create(['site_id' => $siteId, ...$attributes]);
+        }
+    }
+
+    /**
+     * @param  Collection<int, SocialProfile>  $existing
+     * @param  array<int, true>  $claimed
+     */
+    private function matchExisting(Collection $existing, array $claimed, SocialProfileConfigurationData $profile): ?SocialProfile
+    {
+        $unclaimed = $existing->reject(static fn (SocialProfile $row): bool => isset($claimed[$row->id]));
+
+        if ($profile->id !== null && $unclaimed->has($profile->id)) {
+            return $unclaimed->get($profile->id);
+        }
+
+        if ($profile->networkKey !== null) {
+            return $unclaimed->first(static fn (SocialProfile $row): bool => $row->network_key === $profile->networkKey);
+        }
+
+        return $unclaimed->first(static fn (SocialProfile $row): bool => $row->network_key === null
+            && $row->profile_value === $profile->profileValue);
     }
 
     /**
@@ -121,6 +185,7 @@ final class SaveSocialSiteConfigurationAction
                 profileValue: $profileValue,
                 customLabel: $customLabel,
                 isEnabled: $profile->isEnabled,
+                id: $profile->id,
             );
         }
 
@@ -142,6 +207,7 @@ final class SaveSocialSiteConfigurationAction
             profileValue: $profileValue,
             customLabel: $customLabel,
             isEnabled: $profile->isEnabled,
+            id: $profile->id,
         );
     }
 

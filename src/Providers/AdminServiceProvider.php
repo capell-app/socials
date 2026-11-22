@@ -7,6 +7,7 @@ namespace Capell\Socials\Providers;
 use Capell\Admin\Data\AdminSurfaceContributionData;
 use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Support\Packages\RegistersInstalledRuntime;
+use Capell\Socials\Filament\BuilderBlocks\SocialsBuilderBlock;
 use Capell\Socials\Filament\Pages\SocialsPage;
 use Illuminate\Support\ServiceProvider;
 use Override;
@@ -25,5 +26,6 @@ final class AdminServiceProvider extends ServiceProvider
     protected function bootInstalledRuntime(): void
     {
         CapellAdmin::contributeToAdminSurface(AdminSurfaceContributionData::page(SocialsPage::class));
+        CapellAdmin::registerBuilderBlock(SocialsBuilderBlock::class);
     }
 }

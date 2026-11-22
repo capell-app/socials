@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Capell\Socials\Support;
 
+use Capell\Core\Data\Rendering\FrontendRuntimeManifestData;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\Frontend\Contracts\FrontendContextReader;
 use Capell\Frontend\Contracts\FrontendRuntimeManifestContributor;
-use Capell\Frontend\Data\FrontendRuntimeManifestData;
 use Capell\Socials\Actions\PrepareSocialSiteRenderDataAction;
 
 final class SocialsFrontendRuntimeManifestContributor implements FrontendRuntimeManifestContributor

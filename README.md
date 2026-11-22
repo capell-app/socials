@@ -10,14 +10,14 @@ Before editors can use it, a developer runs the install command once on the serv
 
 Clicking a share link opens the visitor's own network to finish the post, with the page's address filled in, plus its title on networks that take one.
 
-- **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/extensions/socials).
-- **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/extensions/socials).
-- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/block-library ^1.0`, `capell-app/core ^1.0.75`, `capell-app/frontend ^1.0`, `laravel/framework ^12.61.1|^13.12.0`, `lorisleiva/laravel-actions ^2.8`, `spatie/laravel-package-tools ^1.14.1`.
-- **Install:** `composer require capell-app/socials`.
+- **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/marketplace/extensions/socials).
+- **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/marketplace/extensions/socials).
+- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.79`, `capell-app/block-library ^1.0`, `capell-app/core ^1.0.79`, `capell-app/frontend ^1.0.79`, `laravel/framework ^12.61.1|^13.12.0`, `lorisleiva/laravel-actions ^2.8`, `spatie/laravel-package-tools ^1.14.1`.
+- **Install:** `composer require capell-app/socials:@beta`.
 
 ## Quick Start
 
-1. Install the package: `composer require capell-app/socials`.
+1. Install the package: `composer require capell-app/socials:@beta`.
 2. Run the package setup: `php artisan capell:socials-install`.
 3. Open the package admin surface at `/admin/socials` and confirm Socials is available.
 
@@ -31,7 +31,7 @@ The network registry, public resolver contract, and typed render data keep profi
 
 ## Limits And Pitfalls
 
-- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.66`, `capell-app/block-library ^1.0`, `capell-app/core ^1.0.75`, `capell-app/frontend ^1.0`.
+- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.79`, `capell-app/block-library ^1.0`, `capell-app/core ^1.0.79`, `capell-app/frontend ^1.0.79`.
 - Run migrations before opening package resources or public routes.
 - Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
 - Custom write integrations must preserve invalidation for `socials` cache tags.

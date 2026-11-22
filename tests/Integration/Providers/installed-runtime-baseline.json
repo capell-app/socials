@@ -4,10 +4,10 @@
     "scenarios": {
         "default": {
             "source": {
-                "ref": "c92ce184be4d91c372f35ca125ea25f6c1308599",
-                "commit": "c92ce184be4d91c372f35ca125ea25f6c1308599",
+                "ref": "HEAD",
+                "commit": "ba8c9de7acdd4410171a99d60b5d1db915c0bd7c",
                 "providers": {
-                    "Providers/AdminServiceProvider.php": "713014344ae1c665bb63410efd40313cac88f725fc1917d77f3d75334c071da9",
+                    "Providers/AdminServiceProvider.php": "ca295755e4a3bee352d39dd8170a3a73cfb4f8b2f53977cc027caa1093bab89a",
                     "Providers/MigrationMetadataServiceProvider.php": "891758a42a8c8ba8f0ab9ee6a746f2554e45dbc4d759816c1c05b0d6d75ff6e6",
                     "Providers/SocialsServiceProvider.php": "f249950659898e38353362ad1fa257aed7d5af1cbecb06edac20eedc52b400dd"
                 },
@@ -114,8 +114,8 @@
                         "context"
                     ],
                     [
-                        "dashboard-widget",
-                        "widget:Capell\\Socials\\Filament\\BuilderBlocks\\SocialsBuilderBlock",
+                        "builder-block",
+                        "builder-block:Capell\\Socials\\Filament\\BuilderBlocks\\SocialsBuilderBlock",
                         "Capell\\Socials\\Filament\\BuilderBlocks\\SocialsBuilderBlock",
                         "Capell\\Admin\\Support\\CapellAdminManager",
                         "admin",
@@ -130,10 +130,10 @@
                             "Capell\\Socials\\Filament\\Pages\\SocialsPage"
                         ]
                     ],
-                    "dashboard-widget": [
+                    "builder-block": [
                         [
-                            "dashboard-widget",
-                            "widget:Capell\\Socials\\Filament\\BuilderBlocks\\SocialsBuilderBlock",
+                            "builder-block",
+                            "builder-block:Capell\\Socials\\Filament\\BuilderBlocks\\SocialsBuilderBlock",
                             "Capell\\Socials\\Filament\\BuilderBlocks\\SocialsBuilderBlock"
                         ]
                     ]
@@ -759,25 +759,6 @@
                         "Capell\\Socials\\Providers\\AdminServiceProvider"
                     ]
                 },
-                "receipt-emissions": [
-                    [
-                        "dashboard-widget",
-                        "widget:Capell\\Socials\\Filament\\BuilderBlocks\\SocialsBuilderBlock",
-                        "Capell\\Socials\\Filament\\BuilderBlocks\\SocialsBuilderBlock",
-                        "Capell\\Admin\\Support\\CapellAdminManager",
-                        "admin",
-                        "context"
-                    ]
-                ],
-                "receipts": {
-                    "dashboard-widget": [
-                        [
-                            "dashboard-widget",
-                            "widget:Capell\\Socials\\Filament\\BuilderBlocks\\SocialsBuilderBlock",
-                            "Capell\\Socials\\Filament\\BuilderBlocks\\SocialsBuilderBlock"
-                        ]
-                    ]
-                },
                 "registries": {
                     "Capell\\BlockLibrary\\Support\\BlockRegistry": {
                         "definitions": {
@@ -1337,17 +1318,17 @@
             "removableUninstalledSurfaces": [],
             "installationReceiptEmissions": [
                 [
-                    "dashboard-widget",
-                    "widget:Capell\\Socials\\Filament\\BuilderBlocks\\SocialsBuilderBlock",
-                    "Capell\\Socials\\Filament\\BuilderBlocks\\SocialsBuilderBlock",
+                    "admin-page",
+                    "Capell\\Socials\\Filament\\Pages\\SocialsPage",
+                    "Capell\\Socials\\Filament\\Pages\\SocialsPage",
                     "Capell\\Admin\\Support\\CapellAdminManager",
                     "admin",
                     "context"
                 ],
                 [
-                    "admin-page",
-                    "Capell\\Socials\\Filament\\Pages\\SocialsPage",
-                    "Capell\\Socials\\Filament\\Pages\\SocialsPage",
+                    "builder-block",
+                    "builder-block:Capell\\Socials\\Filament\\BuilderBlocks\\SocialsBuilderBlock",
+                    "Capell\\Socials\\Filament\\BuilderBlocks\\SocialsBuilderBlock",
                     "Capell\\Admin\\Support\\CapellAdminManager",
                     "admin",
                     "context"

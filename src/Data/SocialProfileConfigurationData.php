@@ -11,5 +11,6 @@ final readonly class SocialProfileConfigurationData
         public string $profileValue,
         public ?string $customLabel = null,
         public bool $isEnabled = true,
+        public ?int $id = null,
     ) {}
 }
